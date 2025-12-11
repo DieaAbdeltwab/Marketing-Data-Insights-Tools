@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fulfly Analytics Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0e27; min-height: 100vh; color: #fff; overflow-x: hidden; }
+        .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: linear-gradient(45deg, #0a0e27, #1a1f3a, #0a0e27); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .particle { position: absolute; width: 4px; height: 4px; background: rgba(99, 102, 241, 0.5); border-radius: 50%; animation: float 20s infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(50px); opacity: 0; } }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .header { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 24px; text-align: center; margin-bottom: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%); animation: pulse 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+        .header h1 { font-size: 3em; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; position: relative; z-index: 1; font-weight: 800; letter-spacing: -1px; }
+        .header p { color: rgba(255, 255, 255, 0.7); font-size: 1.2em; position: relative; z-index: 1; }
+        .upload-section { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 50px; border-radius: 24px; margin-bottom: 30px; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+        .upload-section h2 { font-size: 2em; margin-bottom: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .upload-area { border: 2px dashed rgba(99, 102, 241, 0.5); border-radius: 20px; padding: 60px; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(99, 102, 241, 0.03); position: relative; overflow: hidden; }
+        .upload-area::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(99, 102, 241, 0.1); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .upload-area:hover::before { width: 500px; height: 500px; }
+        .upload-area:hover { border-color: #667eea; transform: scale(1.02); box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3); }
+        .upload-area input[type="file"] { display: none; }
+        .upload-icon { font-size: 5em; margin-bottom: 20px; position: relative; z-index: 1; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .upload-area h3, .upload-area p { position: relative; z-index: 1; }
+        .results-section { display: none; animation: slideUp 0.6s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .results-section.show { display: block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin: 40px 0; }
+        .stat-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 35px; border-radius: 20px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); opacity: 0; transition: opacity 0.4s; }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card:hover { transform: translateY(-10px) scale(1.02); border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3); }
+        .stat-card .icon { font-size: 3em; margin-bottom: 15px; display: block; position: relative; z-index: 1; }
+        .stat-card h3 { font-size: 2.8em; margin-bottom: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800; position: relative; z-index: 1; }
+        .stat-card p { color: rgba(255, 255, 255, 0.7); font-size: 1.1em; font-weight: 500; position: relative; z-index: 1; }
+        .loading { display: none; text-align: center; padding: 60px; animation: fadeIn 0.5s; }
+        .loading.show { display: block; }
+        .spinner { width: 60px; height: 60px; margin: 0 auto 30px; border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading p { font-size: 1.3em; color: rgba(255, 255, 255, 0.8); }
+        .filter-section { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; margin: 25px 0; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
+        .filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .filter-group { display: flex; flex-direction: column; gap: 8px; }
+        .filter-section label { color: rgba(255, 255, 255, 0.9); font-weight: 600; font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-section select, .filter-section input[type="date"] { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 12px 16px; border-radius: 10px; font-size: 1em; transition: all 0.3s; cursor: pointer; }
+        .filter-section select option { background: #1a1f3a; color: white; padding: 10px; }
+        .filter-section select:focus, .filter-section input[type="date"]:focus { outline: none; border-color: #667eea; box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+        .filter-actions { display: flex; gap: 15px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
+        .clear-btn { background: rgba(255, 59, 48, 0.2); border: 1px solid rgba(255, 59, 48, 0.5); color: #ff9999; padding: 14px 32px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 1em; }
+        .clear-btn:hover { background: rgba(255, 59, 48, 0.3); border-color: rgba(255, 59, 48, 0.8); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255, 59, 48, 0.3); }
+        .filter-info { display: none; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); padding: 20px 25px; border-radius: 15px; margin: 20px 0; border-left: 4px solid rgba(99, 102, 241, 0.8); color: rgba(255, 255, 255, 0.95); font-weight: 500; animation: slideIn 0.3s ease; box-shadow: 0 5px 20px rgba(99, 102, 241, 0.2); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .filter-info.show { display: block; }
+        .filter-info strong { color: #fff; font-size: 1.05em; }
+        .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin: 25px 0; }
+        .chart-container { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
+        .section-title { font-size: 2em; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 40px 0 25px 0; padding-bottom: 15px; border-bottom: 2px solid rgba(99, 102, 241, 0.3); font-weight: 700; }
+        .table-container { overflow-x: auto; margin: 25px 0; border-radius: 20px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(99, 102, 241, 0.2); color: white; padding: 20px; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; }
+        td { padding: 18px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.8); }
+        tr { transition: all 0.3s; }
+        tr:hover { background: rgba(99, 102, 241, 0.1); }
+        .progress-bar { height: 35px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; overflow: hidden; margin: 10px 0; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .progress-fill::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+        .button-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 40px 0; }
+        .action-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 40px; font-size: 1.1em; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3); position: relative; overflow: hidden; }
+        .action-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .action-btn:hover::before { width: 300px; height: 300px; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5); }
+        .action-btn span { position: relative; z-index: 1; }
+        .product-expandable { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px; margin: 15px 0; cursor: pointer; transition: all 0.3s; }
+        .product-expandable:hover { border-color: rgba(99, 102, 241, 0.5); background: rgba(255, 255, 255, 0.05); }
+        .product-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; font-weight: 600; }
+        .product-content { display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .product-content.expanded { display: block; }
+        .product-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 15px; }
+        .mini-stat { background: rgba(99, 102, 241, 0.1); padding: 15px; border-radius: 10px; text-align: center; border: 1px solid rgba(99, 102, 241, 0.2); }
+        .mini-stat-label { font-size: 0.85em; color: rgba(255, 255, 255, 0.6); margin-bottom: 8px; }
+        .mini-stat-value { font-size: 1.8em; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        @media (max-width: 768px) { .header h1 { font-size: 2em; } .stats-grid { grid-template-columns: 1fr; } .chart-row { grid-template-columns: 1fr; } .filter-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 FULFLY ANALYTICS PRO 🚀</h1>
+            <p>Advanced Business Intelligence Dashboard</p>
+        </div>
+        <div class="upload-section">
+            <h2>📦 Fulfly Orders Analyzer</h2>
+            <p style="margin: 15px 0; color: rgba(255,255,255,0.7);">Upload your Fulfly Excel file for complete analysis</p>
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <div class="upload-icon">📊</div>
+                <h3>Click to Upload Excel File</h3>
+                <p style="color: rgba(255,255,255,0.6);">or drag and drop your orders.xlsx file here</p>
+                <input type="file" id="file-input" accept=".xlsx,.xls">
+            </div>
+        </div>
+        <div class="loading" id="loading"><div class="spinner"></div><p>Analyzing your data with AI insights...</p></div>
+        <div id="results" class="results-section"></div>
+    </div>
+    <script>
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        let originalData = null;
+        let currentFilteredData = null;
+        let charts = {};
+
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            console.log('File selected:', file.name);
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    console.log('File loaded, parsing...');
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    console.log('Data parsed:', jsonData.length, 'rows');
+                    originalData = jsonData;
+                    currentFilteredData = jsonData;
+                    renderDashboard(jsonData);
+                } catch (error) {
+                    console.error('Error parsing file:', error);
+                    document.getElementById('loading').classList.remove('show');
+                    alert('Error parsing Excel file. Please make sure it is a valid Excel file.');
+                }
+            };
+            reader.onerror = function(error) {
+                console.error('Error reading file:', error);
+                document.getElementById('loading').classList.remove('show');
+                alert('Error reading file. Please try again.');
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function parseDate(dateValue) {
+            if (!dateValue) return null;
+            if (dateValue instanceof Date) return dateValue;
+            if (typeof dateValue === 'number') return new Date((dateValue - 25569) * 86400 * 1000);
+            const parsed = new Date(dateValue);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function getWeekKey(date) {
+            const onejan = new Date(date.getFullYear(), 0, 1);
+            const week = Math.ceil((((date - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+            return `Week ${week}, ${date.getFullYear()}`;
+        }
+
+        function renderDashboard(data) {
+            setTimeout(() => {
+                const analysis = analyzeData(data);
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('results').innerHTML = generateHTML(data, analysis);
+                document.getElementById('results').classList.add('show');
+                createCharts(analysis);
+            }, 800);
+        }
+
+        function analyzeData(data) {
+            const statusCounts = {}, productCounts = {}, monthlyRevenue = {}, weeklyRevenue = {}, governorates = {}, cities = {};
+            let totalRevenue = 0, deliveredRevenue = 0, cancelledRevenue = 0;
+            let totalNetPrice = 0, totalShippingCost = 0, totalAffiliateCommission = 0;
+            let deliveredNetPrice = 0, deliveredShippingCost = 0, deliveredAffiliateCommission = 0;
+
+            data.forEach(row => {
+                const status = row.Status || 'Unknown';
+                const product = row.Products || 'Unknown';
+                const price = parseFloat(row['Total price'] || 0);
+                const netPrice = parseFloat(row['Net price'] || 0);
+                const shippingCost = parseFloat(row['Shipping Cost'] || 0);
+                const affiliateCommission = parseFloat(row['Affiliate commission'] || 0);
+                const date = parseDate(row.Date);
+                const gov = row.Governorate || 'Unknown';
+                const city = row.City || 'Unknown';
+                
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+                productCounts[product] = (productCounts[product] || 0) + 1;
+                governorates[gov] = (governorates[gov] || 0) + 1;
+                cities[city] = (cities[city] || 0) + 1;
+                totalRevenue += price;
+                totalNetPrice += netPrice;
+                totalShippingCost += shippingCost;
+                totalAffiliateCommission += affiliateCommission;
+                
+                if (date) {
+                    const monthKey = date.toLocaleDateString('en-US', {year: 'numeric', month: 'short'});
+                    monthlyRevenue[monthKey] = (monthlyRevenue[monthKey] || 0) + price;
+                    
+                    const weekKey = getWeekKey(date);
+                    weeklyRevenue[weekKey] = (weeklyRevenue[weekKey] || 0) + price;
+                }
+                
+                const statusLower = status.toLowerCase();
+                if (statusLower.includes('delivered') || statusLower.includes('complete')) {
+                    deliveredRevenue += price;
+                    deliveredNetPrice += netPrice;
+                    deliveredShippingCost += shippingCost;
+                    deliveredAffiliateCommission += affiliateCommission;
+                } else if (statusLower.includes('cancelled') || statusLower.includes('returned')) {
+                    cancelledRevenue += price;
+                }
+            });
+
+            const avgOrderValue = totalRevenue / data.length;
+            const avgNetPrice = totalNetPrice / data.length;
+            const avgShippingCost = totalShippingCost / data.length;
+            const avgAffiliateCommission = totalAffiliateCommission / data.length;
+            const deliveredCount = Object.keys(statusCounts).filter(k => k.toLowerCase().includes('delivered') || k.toLowerCase().includes('complete')).reduce((sum, k) => sum + statusCounts[k], 0);
+            const deliveryRate = ((deliveredCount / data.length) * 100).toFixed(1);
+            const totalProfit = totalNetPrice - totalShippingCost - totalAffiliateCommission;
+            const deliveredProfit = deliveredNetPrice - deliveredShippingCost - deliveredAffiliateCommission;
+            const profitMargin = totalNetPrice > 0 ? (((totalNetPrice - totalShippingCost - totalAffiliateCommission) / totalNetPrice) * 100).toFixed(2) : 0;
+
+            return { 
+                statusCounts, productCounts, monthlyRevenue, weeklyRevenue, governorates, cities, 
+                totalRevenue, deliveredRevenue, cancelledRevenue, avgOrderValue, deliveryRate, 
+                totalNetPrice, totalShippingCost, totalAffiliateCommission, 
+                avgNetPrice, avgShippingCost, avgAffiliateCommission, 
+                deliveredNetPrice, deliveredShippingCost, deliveredAffiliateCommission, 
+                totalProfit, deliveredProfit, profitMargin 
+            };
+        }
+
+        function applyFilters() {
+            const statusFilter = document.getElementById('status-filter').value;
+            const productFilter = document.getElementById('product-filter').value;
+            const govFilter = document.getElementById('gov-filter').value;
+            const cityFilter = document.getElementById('city-filter').value;
+            const dateFromFilter = document.getElementById('date-from-filter').value;
+            const dateToFilter = document.getElementById('date-to-filter').value;
+
+            let filteredData = [...originalData];
+
+            if (statusFilter) filteredData = filteredData.filter(row => row.Status === statusFilter);
+            if (productFilter) filteredData = filteredData.filter(row => row.Products === productFilter);
+            if (govFilter) filteredData = filteredData.filter(row => row.Governorate === govFilter);
+            if (cityFilter) filteredData = filteredData.filter(row => row.City === cityFilter);
+            
+            if (dateFromFilter) {
+                const fromDate = new Date(dateFromFilter);
+                fromDate.setHours(0, 0, 0, 0);
+                filteredData = filteredData.filter(row => {
+                    const rowDate = parseDate(row.Date);
+                    return rowDate && rowDate >= fromDate;
+                });
+            }
+            
+            if (dateToFilter) {
+                const toDate = new Date(dateToFilter);
+                toDate.setHours(23, 59, 59, 999);
+                filteredData = filteredData.filter(row => {
+                    const rowDate = parseDate(row.Date);
+                    return rowDate && rowDate <= toDate;
+                });
+            }
+
+            if (filteredData.length === 0) {
+                alert('⚠️ No orders match the selected filters');
+                return;
+            }
+
+            currentFilteredData = filteredData;
+            const filterInfo = document.getElementById('filter-info');
+            const activeFilters = [];
+            if (statusFilter) activeFilters.push(`Status: ${statusFilter}`);
+            if (productFilter) activeFilters.push(`Product: ${productFilter}`);
+            if (govFilter) activeFilters.push(`Governorate: ${govFilter}`);
+            if (cityFilter) activeFilters.push(`City: ${cityFilter}`);
+            if (dateFromFilter) activeFilters.push(`From: ${dateFromFilter}`);
+            if (dateToFilter) activeFilters.push(`To: ${dateToFilter}`);
+            
+            if (activeFilters.length > 0) {
+                filterInfo.innerHTML = `<strong>🔍 Active Filters:</strong> ${activeFilters.join(' • ')} <strong>• Results: ${filteredData.length} orders</strong>`;
+                filterInfo.classList.add('show');
+            } else {
+                filterInfo.classList.remove('show');
+            }
+            updateDashboardContent(filteredData);
+        }
+
+        function updateDashboardContent(data) {
+            const analysis = analyzeData(data);
+            document.getElementById('stats-grid').innerHTML = generateStatsCards(data, analysis);
+            document.getElementById('product-stats').innerHTML = generateProductList(data, analysis.productCounts);
+            document.getElementById('status-table').innerHTML = generateStatusTable(analysis.statusCounts, data.length);
+            document.getElementById('product-table').innerHTML = generateProductTable(analysis.productCounts);
+            document.getElementById('city-table').innerHTML = generateCityTable(analysis.cities, data.length);
+            createCharts(analysis);
+        }
+
+        function clearFilters() {
+            document.getElementById('status-filter').value = '';
+            document.getElementById('product-filter').value = '';
+            document.getElementById('gov-filter').value = '';
+            document.getElementById('city-filter').value = '';
+            document.getElementById('date-from-filter').value = '';
+            document.getElementById('date-to-filter').value = '';
+            document.getElementById('filter-info').classList.remove('show');
+            currentFilteredData = originalData;
+            updateDashboardContent(originalData);
+        }
+
+        function generateHTML(data, analysis) {
+            return `
+                <h2 class="section-title">📊 Performance Dashboard</h2>
+                <div class="stats-grid" id="stats-grid">${generateStatsCards(data, analysis)}</div>
+                
+                <h2 class="section-title">🔍 Advanced Filtering</h2>
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group"><label>Status:</label><select id="status-filter"><option value="">All Statuses</option>${Object.keys(analysis.statusCounts).map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>Product:</label><select id="product-filter"><option value="">All Products</option>${Object.keys(analysis.productCounts).map(p => `<option value="${p}">${p}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>Governorate:</label><select id="gov-filter"><option value="">All Governorates</option>${Object.keys(analysis.governorates).map(g => `<option value="${g}">${g}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>City:</label><select id="city-filter"><option value="">All Cities</option>${Object.keys(analysis.cities).map(c => `<option value="${c}">${c}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>From Date:</label><input type="date" id="date-from-filter"></div>
+                        <div class="filter-group"><label>To Date:</label><input type="date" id="date-to-filter"></div>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="action-btn" onclick="applyFilters()"><span>🔎 Apply Filters</span></button>
+                        <button class="clear-btn" onclick="clearFilters()">🔄 Clear All Filters</button>
+                    </div>
+                </div>
+                <div id="filter-info" class="filter-info"></div>
+                
+                <h2 class="section-title">📦 Product Performance</h2>
+                <div id="product-stats">${generateProductList(data, analysis.productCounts)}</div>
+                
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="status-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="products-chart"></canvas></div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="weekly-revenue-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="revenue-chart"></canvas></div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="city-chart"></canvas></div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="order-value-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="profit-chart"></canvas></div>
+                </div>
+                
+                <div id="status-table">${generateStatusTable(analysis.statusCounts, data.length)}</div>
+                <div id="product-table">${generateProductTable(analysis.productCounts)}</div>
+                <div id="city-table">${generateCityTable(analysis.cities, data.length)}</div>
+                
+                <div class="button-group">
+                    <button class="action-btn" onclick="downloadReport()"><span>📥 Download Report</span></button>
+                </div>
+            `;
+        }
+
+        function generateStatsCards(data, analysis) {
+            const avgProfit = (analysis.totalProfit / data.length).toFixed(2);
+            const avgDeliveredProfit = analysis.deliveredRevenue > 0 ? (analysis.deliveredProfit / Object.keys(analysis.statusCounts).filter(k => k.toLowerCase().includes('delivered') || k.toLowerCase().includes('complete')).reduce((sum, k) => sum + analysis.statusCounts[k], 0)).toFixed(2) : 0;
+            const revenueAtRisk = analysis.cancelledRevenue.toFixed(2);
+            
+            return `
+                <div class="stat-card"><span class="icon">📦</span><h3>${data.length}</h3><p>Total Orders</p></div>
+                <div class="stat-card"><span class="icon">✅</span><h3>${analysis.deliveryRate}%</h3><p>Delivery Rate</p></div>
+                <div class="stat-card"><span class="icon">🎯</span><h3>${Object.keys(analysis.productCounts).length}</h3><p>Unique Products</p></div>
+                
+                <div class="stat-card"><span class="icon">💰</span><h3>${analysis.totalRevenue.toFixed(2)}</h3><p>Total Revenue</p></div>
+                <div class="stat-card"><span class="icon">💵</span><h3>${analysis.totalNetPrice.toFixed(2)}</h3><p>Total Net Price</p></div>
+                <div class="stat-card"><span class="icon">✨</span><h3>${analysis.deliveredRevenue.toFixed(2)}</h3><p>Delivered Revenue</p></div>
+                <div class="stat-card"><span class="icon">🔴</span><h3>${revenueAtRisk}</h3><p>Revenue at Risk</p></div>
+                
+                <div class="stat-card"><span class="icon">🚚</span><h3>${analysis.totalShippingCost.toFixed(2)}</h3><p>Total Shipping Cost</p></div>
+                <div class="stat-card"><span class="icon">🤝</span><h3>${analysis.totalAffiliateCommission.toFixed(2)}</h3><p>Total Commission</p></div>
+                
+                <div class="stat-card"><span class="icon">💎</span><h3>${analysis.totalProfit.toFixed(2)}</h3><p>Total Profit</p></div>
+                <div class="stat-card"><span class="icon">🌟</span><h3>${analysis.deliveredProfit.toFixed(2)}</h3><p>Delivered Profit</p></div>
+                <div class="stat-card"><span class="icon">📊</span><h3>${analysis.profitMargin}%</h3><p>Profit Margin</p></div>
+                
+                <div class="stat-card"><span class="icon">📈</span><h3>${analysis.avgOrderValue.toFixed(2)}</h3><p>Avg Order Value</p></div>
+                <div class="stat-card"><span class="icon">💸</span><h3>${avgProfit}</h3><p>Avg Profit/Order</p></div>
+                <div class="stat-card"><span class="icon">⭐</span><h3>${avgDeliveredProfit}</h3><p>Avg Delivered Profit</p></div>
+            `;
+        }
+
+        function generateProductList(data, productCounts) {
+            return Object.entries(productCounts).sort((a, b) => b[1] - a[1]).map((entry, idx) => {
+                const product = entry[0];
+                const count = entry[1];
+                const percentage = ((count / data.length) * 100).toFixed(2);
+                const productData = data.filter(d => d.Products === product);
+                const productRevenue = productData.reduce((sum, row) => sum + parseFloat(row['Total price'] || 0), 0);
+                const productNetPrice = productData.reduce((sum, row) => sum + parseFloat(row['Net price'] || 0), 0);
+                const productShipping = productData.reduce((sum, row) => sum + parseFloat(row['Shipping Cost'] || 0), 0);
+                const productCommission = productData.reduce((sum, row) => sum + parseFloat(row['Affiliate commission'] || 0), 0);
+                const productProfit = productNetPrice - productShipping - productCommission;
+                const avgPrice = (productRevenue / count).toFixed(2);
+                
+                return `
+                    <div class="product-expandable" onclick="toggleProductStats(this)">
+                        <div class="product-header">
+                            <div style="flex: 1;"><strong>${idx + 1}. ${product}</strong></div>
+                            <div style="flex: 1; text-align: right; color: rgba(255,255,255,0.6);">${count} orders • ${productRevenue.toFixed(2)}</div>
+                            <div style="margin-left: 20px; color: rgba(99, 102, 241, 0.7); transition: transform 0.3s;">▼</div>
+                        </div>
+                        <div class="product-content">
+                            <div class="product-stats-grid">
+                                <div class="mini-stat"><div class="mini-stat-label">Orders</div><div class="mini-stat-value">${count}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Revenue</div><div class="mini-stat-value">${productRevenue.toFixed(2)}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Net Price</div><div class="mini-stat-value">${productNetPrice.toFixed(2)}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Shipping</div><div class="mini-stat-value">${productShipping.toFixed(2)}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Commission</div><div class="mini-stat-value">${productCommission.toFixed(2)}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Profit</div><div class="mini-stat-value">${productProfit.toFixed(2)}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Avg Price</div><div class="mini-stat-value">${avgPrice}</div></div>
+                                <div class="mini-stat"><div class="mini-stat-label">Share</div><div class="mini-stat-value">${percentage}%</div></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleProductStats(element) {
+            const content = element.querySelector('.product-content');
+            content.classList.toggle('expanded');
+            const arrow = element.querySelector('div:last-child');
+            arrow.style.transform = content.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        function generateStatusTable(statusCounts, total) {
+            let html = '<h3 class="section-title">📋 Status Breakdown</h3><div class="table-container"><table><thead><tr><th>Status</th><th>Count</th><th>Percentage</th><th>Progress</th></tr></thead><tbody>';
+            Object.entries(statusCounts).sort((a, b) => b[1] - a[1]).forEach(([status, count]) => {
+                const percentage = ((count / total) * 100).toFixed(2);
+                html += `<tr><td><strong>${status}</strong></td><td>${count}</td><td>${percentage}%</td><td><div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%">${percentage}%</div></div></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
+        }
+
+        function generateProductTable(productCounts) {
+            const topProducts = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const totalOrders = Object.values(productCounts).reduce((a, b) => a + b, 0);
+            let html = '<h3 class="section-title">🏆 Top 10 Products</h3><div class="table-container"><table><thead><tr><th>Rank</th><th>Product</th><th>Orders</th><th>Share</th></tr></thead><tbody>';
+            topProducts.forEach(([product, count], index) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[index] || `#${index + 1}`;
+                const share = ((count / totalOrders) * 100).toFixed(1);
+                html += `<tr><td><strong style="font-size: 1.3em;">${medal}</strong></td><td>${product}</td><td>${count}</td><td><div class="progress-bar"><div class="progress-fill" style="width: ${share}%">${share}%</div></div></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
+        }
+
+        function generateCityTable(cities, total) {
+            let html = '<h3 class="section-title">🏙️ City Distribution</h3><div class="table-container"><table><thead><tr><th>City</th><th>Orders</th><th>Percentage</th><th>Progress</th></tr></thead><tbody>';
+            Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 20).forEach(([city, count]) => {
+                const percentage = ((count / total) * 100).toFixed(2);
+                html += `<tr><td><strong>${city}</strong></td><td>${count}</td><td>${percentage}%</td><td><div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%">${percentage}%</div></div></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
+        }
+
+        function createCharts(analysis) {
+            createStatusChart(analysis.statusCounts);
+            createRevenueChart(analysis.monthlyRevenue);
+            createWeeklyRevenueChart(analysis.weeklyRevenue);
+            createProductsChart(analysis.productCounts);
+            createTimelineChart(currentFilteredData);
+            createCityChart(analysis.cities);
+            createOrderValueChart(currentFilteredData);
+            createProfitChart(analysis);
+        }
+
+        function createStatusChart(statusCounts) {
+            const ctx = document.getElementById('status-chart');
+            if (!ctx) return;
+            const colors = ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 'rgba(240, 147, 251, 0.8)', 'rgba(79, 172, 254, 0.8)', 'rgba(67, 233, 123, 0.8)', 'rgba(250, 112, 154, 0.8)'];
+            if (charts.status) charts.status.destroy();
+            charts.status = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{data: Object.values(statusCounts), backgroundColor: colors, borderWidth: 3, borderColor: 'rgba(10, 14, 39, 0.8)'}]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'bottom', labels: {padding: 20, font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Order Status Distribution', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    }
+                }
+            });
+        }
+
+        function createRevenueChart(monthlyRevenue) {
+            const ctx = document.getElementById('revenue-chart');
+            if (!ctx) return;
+            if (charts.revenue) charts.revenue.destroy();
+            charts.revenue = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(monthlyRevenue),
+                    datasets: [{label: 'Revenue', data: Object.values(monthlyRevenue), borderColor: 'rgba(102, 126, 234, 1)', backgroundColor: 'rgba(102, 126, 234, 0.1)', borderWidth: 3, fill: true, tension: 0.4, pointRadius: 5, pointHoverRadius: 8}]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Monthly Revenue Trend', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}}
+                    }
+                }
+            });
+        }
+
+        function createWeeklyRevenueChart(weeklyRevenue) {
+            const ctx = document.getElementById('weekly-revenue-chart');
+            if (!ctx) return;
+            const sortedWeeks = Object.keys(weeklyRevenue).sort();
+            const lastWeeks = sortedWeeks.slice(-12);
+            const weeklyData = lastWeeks.map(week => weeklyRevenue[week]);
+            
+            if (charts.weeklyRevenue) charts.weeklyRevenue.destroy();
+            charts.weeklyRevenue = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: lastWeeks,
+                    datasets: [{
+                        label: 'Weekly Revenue', 
+                        data: weeklyData, 
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        borderColor: 'rgba(240, 147, 251, 1)', 
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgba(240, 147, 251, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Weekly Revenue Trend', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)', maxRotation: 45, minRotation: 45}}
+                    }
+                }
+            });
+        }
+
+        function createProductsChart(productCounts) {
+            const ctx = document.getElementById('products-chart');
+            if (!ctx) return;
+            const topProducts = Object.entries(productCounts).sort((a, b) => b[1] - a[1]).slice(0, 8);
+            const labels = topProducts.map(p => p[0].length > 30 ? p[0].substring(0, 30) + '...' : p[0]);
+            const data = topProducts.map(p => p[1]);
+            if (charts.products) charts.products.destroy();
+            charts.products = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{label: 'Orders', data: data, backgroundColor: 'rgba(118, 75, 162, 0.8)', borderColor: 'rgba(118, 75, 162, 1)', borderWidth: 2}]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Top Products by Orders', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        x: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        y: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}}
+                    }
+                }
+            });
+        }
+
+        function createTimelineChart(data) {
+            const ctx = document.getElementById('timeline-chart');
+            if (!ctx) return;
+            const dailyCounts = {};
+            data.forEach(row => {
+                const date = parseDate(row.Date);
+                if (date) {
+                    const dateKey = date.toLocaleDateString();
+                    dailyCounts[dateKey] = (dailyCounts[dateKey] || 0) + 1;
+                }
+            });
+            const sortedDates = Object.keys(dailyCounts).sort((a, b) => new Date(a) - new Date(b)).slice(-30);
+            const counts = sortedDates.map(d => dailyCounts[d]);
+            if (charts.timeline) charts.timeline.destroy();
+            charts.timeline = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{label: 'Daily Orders', data: counts, backgroundColor: 'rgba(67, 233, 123, 0.6)', borderColor: 'rgba(67, 233, 123, 1)', borderWidth: 2}]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Orders Timeline (Last 30 Days)', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)', maxRotation: 45, minRotation: 45}}
+                    }
+                }
+            });
+        }
+
+        function createCityChart(cities) {
+            const ctx = document.getElementById('city-chart');
+            if (!ctx) return;
+            const topCities = Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            if (charts.city) charts.city.destroy();
+            charts.city = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCities.map(c => c[0]),
+                    datasets: [{label: 'Orders', data: topCities.map(c => c[1]), backgroundColor: 'rgba(250, 112, 154, 0.8)', borderColor: 'rgba(250, 112, 154, 1)', borderWidth: 2}]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Top 15 Cities by Orders', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        x: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        y: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}}
+                    }
+                }
+            });
+        }
+
+        function createOrderValueChart(data) {
+            const ctx = document.getElementById('order-value-chart');
+            if (!ctx) return;
+            
+            const ranges = {'0-100': 0, '100-200': 0, '200-500': 0, '500-1000': 0, '1000+': 0};
+            data.forEach(row => {
+                const price = parseFloat(row['Total price'] || 0);
+                if (price < 100) ranges['0-100']++;
+                else if (price < 200) ranges['100-200']++;
+                else if (price < 500) ranges['200-500']++;
+                else if (price < 1000) ranges['500-1000']++;
+                else ranges['1000+']++;
+            });
+            
+            if (charts.orderValue) charts.orderValue.destroy();
+            charts.orderValue = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ranges),
+                    datasets: [{
+                        label: 'Orders',
+                        data: Object.values(ranges),
+                        backgroundColor: 'rgba(79, 172, 254, 0.8)',
+                        borderColor: 'rgba(79, 172, 254, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Order Value Distribution', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}}
+                    }
+                }
+            });
+        }
+
+        function createProfitChart(analysis) {
+            const ctx = document.getElementById('profit-chart');
+            if (!ctx) return;
+            if (charts.profit) charts.profit.destroy();
+            charts.profit = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Net Price', 'Shipping Cost', 'Affiliate Commission', 'Total Profit'],
+                    datasets: [{
+                        label: 'Amount',
+                        data: [
+                            analysis.totalNetPrice,
+                            analysis.totalShippingCost,
+                            analysis.totalAffiliateCommission,
+                            analysis.totalProfit
+                        ],
+                        backgroundColor: [
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(250, 112, 154, 0.8)',
+                            'rgba(240, 147, 251, 0.8)',
+                            'rgba(67, 233, 123, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(102, 126, 234, 1)',
+                            'rgba(250, 112, 154, 1)',
+                            'rgba(240, 147, 251, 1)',
+                            'rgba(67, 233, 123, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {display: false},
+                        title: {display: true, text: 'Financial Breakdown', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}}
+                    }
+                }
+            });
+        }
+
+        function downloadReport() {
+            if (!currentFilteredData) return;
+            
+            const analysis = analyzeData(currentFilteredData);
+            const now = new Date();
+            const deliveredCount = Object.keys(analysis.statusCounts).filter(k => k.toLowerCase().includes('delivered') || k.toLowerCase().includes('complete')).reduce((sum, k) => sum + analysis.statusCounts[k], 0);
+            const avgProfit = (analysis.totalProfit / currentFilteredData.length).toFixed(2);
+            const returnedCount = Object.keys(analysis.statusCounts).filter(k => k.toLowerCase().includes('return')).reduce((sum, k) => sum + analysis.statusCounts[k], 0);
+            const returnRate = (returnedCount / currentFilteredData.length * 100).toFixed(1);
+            const profitMargin = parseFloat(analysis.profitMargin);
+            const deliveryRate = parseFloat(analysis.deliveryRate);
+            
+            let report = '';
+            report += '╔════════════════════════════════════════════════════════════════════════════════════════╗\n';
+            report += '║                                                                                        ║\n';
+            report += '║                        ⚡ FULFLY ANALYTICS PRO ⚡                        ║\n';
+            report += '║                          BUSINESS INTELLIGENCE REPORT                          ║\n';
+            report += '║                                                                                        ║\n';
+            report += '╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n';
+            
+            report += `📅 Report Generated: ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} at ${now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}\n\n`;
+            
+            report += '╔════════════════════════════════════════════════════════════════════════════════════════╗\n';
+            report += '║                                📊 EXECUTIVE SUMMARY                                ║\n';
+            report += '╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n';
+            
+            report += '┌─ OVERVIEW\n';
+            report += `│  📦 Total Orders: ${currentFilteredData.length.toLocaleString()}\n`;
+            report += `│  📂 Dataset Coverage: ${currentFilteredData.length === originalData.length ? 'Complete (100.0% of total database)' : `Filtered (${((currentFilteredData.length/originalData.length)*100).toFixed(1)}% of total database)`}\n`;
+            report += `│  🎯 Unique Products: ${Object.keys(analysis.productCounts).length}\n`;
+            report += `│  🗺️  Active Regions: ${Object.keys(analysis.governorates).length} Governorates, ${Object.keys(analysis.cities).length} Cities\n`;
+            report += '└─\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 💰 FINANCIAL PERFORMANCE                                                               │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            report += `│   Total Revenue:          ${analysis.totalRevenue.toFixed(2).padStart(16)}                                                │\n`;
+            report += `│   Total Net Price:        ${analysis.totalNetPrice.toFixed(2).padStart(16)}                                                │\n`;
+            report += `│   Delivered Revenue:      ${analysis.deliveredRevenue.toFixed(2).padStart(16)}                                                │\n`;
+            report += `│   Average Order Value:    ${analysis.avgOrderValue.toFixed(2).padStart(16)}                                                │\n`;
+            report += `│   Total Profit:           ${analysis.totalProfit.toFixed(2).padStart(16)}                                                │\n`;
+            report += `│   Profit Margin:          ${analysis.profitMargin.padStart(15)}%                                               │\n`;
+            report += `│   Delivery Success Rate:  ${analysis.deliveryRate.padStart(15)}%                                               │\n`;
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 💸 COST BREAKDOWN                                                                      │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            report += `│   Total Shipping Cost:         ${analysis.totalShippingCost.toFixed(2).padStart(16)}                                         │\n`;
+            report += `│   Total Commission:            ${analysis.totalAffiliateCommission.toFixed(2).padStart(16)}                                         │\n`;
+            report += `│   Average Shipping/Order:      ${analysis.avgShippingCost.toFixed(2).padStart(16)}                                         │\n`;
+            report += `│   Average Commission/Order:    ${analysis.avgAffiliateCommission.toFixed(2).padStart(16)}                                         │\n`;
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 📈 ORDER STATUS DISTRIBUTION                                                           │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            Object.entries(analysis.statusCounts).sort((a,b) => b[1] - a[1]).forEach(([status, count]) => {
+                const pct = ((count / currentFilteredData.length) * 100).toFixed(1);
+                const barLength = Math.floor(parseFloat(pct) / 2);
+                const bar = '█'.repeat(barLength) + '░'.repeat(50 - barLength);
+                const statusDisplay = status.padEnd(25);
+                report += `│   ${statusDisplay}${count.toString().padStart(6)} orders ${pct.padStart(6)}% ${bar} │\n`;
+            });
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 🏆 TOP 10 BEST-SELLING PRODUCTS                                                        │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            
+            const topProducts = Object.entries(analysis.productCounts).sort((a,b) => b[1] - a[1]).slice(0, 10);
+            topProducts.forEach(([product, count], i) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[i] || `#${i + 1}`;
+                const productData = currentFilteredData.filter(d => d.Products === product);
+                const productRevenue = productData.reduce((sum, row) => sum + parseFloat(row['Total price'] || 0), 0);
+                const productNetPrice = productData.reduce((sum, row) => sum + parseFloat(row['Net price'] || 0), 0);
+                const productShipping = productData.reduce((sum, row) => sum + parseFloat(row['Shipping Cost'] || 0), 0);
+                const productCommission = productData.reduce((sum, row) => sum + parseFloat(row['Affiliate commission'] || 0), 0);
+                const productProfit = productNetPrice - productShipping - productCommission;
+                const share = ((count / currentFilteredData.length) * 100).toFixed(1);
+                const productName = product.length > 56 ? product.substring(0, 56) + '...' : product.padEnd(60);
+                
+                report += `│   ${medal} ${productName} │\n`;
+                report += `│      Orders: ${count.toString().padStart(5)}  │  Revenue: ${productRevenue.toFixed(2).padStart(12)}  │  Share: ${share.padStart(5)}%             │\n`;
+                
+                const barLength = Math.floor(parseFloat(share) / 2);
+                const bar = '▓'.repeat(barLength) + '░'.repeat(40 - barLength);
+                report += `│      ${bar}                        │\n`;
+                report += `│                                                                                        │\n`;
+            });
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 🗺️  TOP PERFORMING GOVERNORATES                                                        │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            const topGovs = Object.entries(analysis.governorates).sort((a,b) => b[1] - a[1]).slice(0, 10);
+            topGovs.forEach(([gov, count], i) => {
+                const pct = ((count / currentFilteredData.length) * 100).toFixed(1);
+                const barLength = Math.floor(parseFloat(pct) / 2);
+                const bar = '█'.repeat(barLength) + '░'.repeat(40 - barLength);
+                report += `│    ${(i+1).toString().padStart(2)}. ${gov.padEnd(30)} ${count.toString().padStart(5)} (${pct.padStart(5)}%) ${bar} │\n`;
+            });
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 🏙️  TOP PERFORMING CITIES                                                              │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            const topCities = Object.entries(analysis.cities).sort((a,b) => b[1] - a[1]).slice(0, 15);
+            topCities.forEach(([city, count], i) => {
+                const pct = ((count / currentFilteredData.length) * 100).toFixed(1);
+                const barLength = Math.floor(parseFloat(pct) / 2);
+                const bar = '█'.repeat(barLength) + '░'.repeat(40 - barLength);
+                report += `│    ${(i+1).toString().padStart(2)}. ${city.padEnd(30)} ${count.toString().padStart(5)} (${pct.padStart(5)}%) ${bar} │\n`;
+            });
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 📅 WEEKLY REVENUE TREND (Last 12 Weeks)                                                │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            const sortedWeeks = Object.keys(analysis.weeklyRevenue).sort();
+            const lastWeeks = sortedWeeks.slice(-12);
+            const maxWeeklyRevenue = Math.max(...lastWeeks.map(week => analysis.weeklyRevenue[week]));
+            lastWeeks.forEach(week => {
+                const revenue = analysis.weeklyRevenue[week];
+                const barLength = Math.floor((revenue / maxWeeklyRevenue) * 50);
+                const bar = '▓'.repeat(barLength);
+                report += `│   ${week.padEnd(20)} ${revenue.toFixed(2).padStart(15)} ${bar.padEnd(15)}               │\n`;
+            });
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 💡 BUSINESS INSIGHTS & RECOMMENDATIONS                                                 │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            
+            if (profitMargin > 50) {
+                report += '│  💎 PROFIT MARGIN: EXCELLENT                                                           │\n';
+                report += `│     ${profitMargin}% profit margin is outstanding! Business model is highly profitable.      │\n`;
+            } else if (profitMargin > 30) {
+                report += '│  ✅ PROFIT MARGIN: GOOD                                                                │\n';
+                report += `│     Healthy ${profitMargin}% profit margin. Continue optimizing costs.                        │\n`;
+            } else if (profitMargin > 15) {
+                report += '│  ⚠️  PROFIT MARGIN: MODERATE                                                            │\n';
+                report += `│     ${profitMargin}% margin has room for improvement. Consider cost optimization.             │\n`;
+            } else {
+                report += '│  🔴 PROFIT MARGIN: NEEDS ATTENTION                                                     │\n';
+                report += `│     Low ${profitMargin}% margin. Urgent optimization needed.                                  │\n`;
+            }
+            report += '│                                                                                        │\n';
+            
+            if (deliveryRate >= 90) {
+                report += '│  🌟 DELIVERY RATE: OUTSTANDING                                                         │\n';
+                report += `│     Excellent ${deliveryRate}% delivery rate! Logistics operating at peak performance.        │\n`;
+            } else if (deliveryRate >= 75) {
+                report += '│  ✅ DELIVERY RATE: GOOD                                                                │\n';
+                report += `│     Solid ${deliveryRate}% delivery performance with room for optimization.                   │\n`;
+            } else if (deliveryRate >= 50) {
+                report += '│  ⚠️  DELIVERY RATE: NEEDS ATTENTION                                                     │\n';
+                report += `│     ${deliveryRate}% delivery rate requires attention. Review fulfillment processes.          │\n`;
+            } else {
+                report += '│  🔴 DELIVERY RATE: CRITICAL                                                            │\n';
+                report += `│     Low ${deliveryRate}% delivery rate. Immediate action required.                            │\n`;
+            }
+            report += '│                                                                                        │\n';
+            
+            if (returnRate > 15) {
+                report += `│  🔴 RETURN RATE: HIGH (${returnRate}%)                                                           │\n`;
+                report += '│     Investigate product quality and descriptions immediately.                          │\n';
+            } else if (returnRate > 8) {
+                report += `│  ⚠️  RETURN RATE: MODERATE (${returnRate}%)                                                     │\n`;
+                report += '│     Consider improving product photos and details.                                    │\n';
+            } else if (returnRate < 3) {
+                report += `│  💎 RETURN RATE: EXCELLENT (${returnRate}%)                                                     │\n`;
+                report += '│     Outstanding quality control! Keep up the great work.                              │\n';
+            } else {
+                report += `│  ✅ RETURN RATE: GOOD (${returnRate}%)                                                          │\n`;
+                report += '│     Acceptable return rate. Maintain quality standards.                               │\n';
+            }
+            
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            const topProduct = Object.entries(analysis.productCounts).sort((a,b) => b[1] - a[1])[0];
+            const topGov = Object.entries(analysis.governorates).sort((a, b) => b[1] - a[1])[0];
+            const topCity = Object.entries(analysis.cities).sort((a, b) => b[1] - a[1])[0];
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 🎯 KEY PERFORMANCE HIGHLIGHTS                                                          │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            if (topProduct) {
+                const topProdName = topProduct[0].length > 50 ? topProduct[0].substring(0, 50) + '...' : topProduct[0];
+                report += `│  • Best-Selling Product: "${topProdName.padEnd(53)}" │\n`;
+                report += `│    ${topProduct[1]} orders (${((topProduct[1]/currentFilteredData.length)*100).toFixed(1)}% market share)                                                  │\n`;
+            }
+            if (topGov) {
+                report += `│  • Top Governorate: "${topGov[0]}" with ${topGov[1]} orders (${((topGov[1]/currentFilteredData.length)*100).toFixed(1)}%)                       │\n`;
+            }
+            if (topCity) {
+                report += `│  • Top City: "${topCity[0]}" with ${topCity[1]} orders (${((topCity[1]/currentFilteredData.length)*100).toFixed(1)}%)                              │\n`;
+            }
+            report += `│  • Delivered Orders: ${deliveredCount.toLocaleString()} (${deliveryRate}%)                                                   │\n`;
+            report += `│  • Average Profit per Order: ${avgProfit} EGP                                              │\n`;
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '\n';
+            report += '╔════════════════════════════════════════════════════════════════════════════════════════╗\n';
+            report += '║                                                                                        ║\n';
+            report += '║                           END OF REPORT - THANK YOU                           ║\n';
+            report += '║                                                                                        ║\n';
+            report += '╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n';
+            
+            report += `Report ID: FF-${Date.now()}\n`;
+            report += 'Generated By: Fulfly Analytics Pro v2.0\n';
+            report += `Data Source: ${currentFilteredData.length === originalData.length ? 'Complete Dataset' : 'Filtered Dataset'}\n`;
+            report += `Total Records Analyzed: ${currentFilteredData.length.toLocaleString()}\n`;
+            
+            const blob = new Blob([report], {type: 'text/plain; charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Fulfly_Business_Report_${now.toISOString().split('T')[0]}_${Date.now()}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

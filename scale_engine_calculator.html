@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scaling Engine Calculator</title>
+  <style>
+    /* Existing CSS remains unchanged */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .scaling-header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      border-radius: 25px;
+      padding: 50px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+      margin-bottom: 30px;
+      border: 3px solid rgba(255, 255, 255, 0.15);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scaling-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .scaling-header h1 {
+      color: #fff;
+      font-size: 3em;
+      margin-bottom: 15px;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 1;
+    }
+
+    .scaling-header .subtitle {
+      color: #94a3b8;
+      font-size: 1.4em;
+      margin-bottom: 25px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .campaign-section {
+      background: white;
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+      margin-bottom: 25px;
+      transition: all 0.3s ease;
+    }
+
+    .campaign-section:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .campaign-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #7e22ce;
+    }
+
+    .campaign-header h2 {
+      color: #1e3c72;
+      font-size: 1.8em;
+    }
+
+    .remove-btn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .remove-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group label {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #475569;
+      font-size: 0.95em;
+    }
+
+    .input-group input {
+      padding: 14px;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1em;
+      transition: all 0.3s ease;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 18px;
+      border: none;
+      border-radius: 15px;
+      font-size: 1.2em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-add {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-add:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(16, 185, 129, 0.6);
+    }
+
+    .btn-calculate {
+      background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
+      color: white;
+      box-shadow: 0 10px 30px rgba(126, 34, 206, 0.4);
+    }
+
+    .btn-calculate:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 40px rgba(126, 34, 206, 0.6);
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    #resultsSection {
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .campaign-result {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0./home/user/scale_calculator.html
+0.15);
+      margin-bottom: 25px;
+    }
+
+    .result-header {
+      background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 25px;
+    }
+
+    .result-header h3 {
+      font-size: 1.8em;
+      margin-bottom: 10px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      padding: 20px;
+      border-radius: 12px;
+      border-left: 4px solid #7e22ce;
+    }
+
+    .stat-label {
+      font-size: 0.9em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #1e293b;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-top: 25px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    thead {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    tbody tr:hover {
+      background: #e0e7ff;
+      transition: background 0.3s ease;
+    }
+
+    .combined-summary {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+      border-radius: 20px;
+      padding: 35px;
+      box-shadow: 0 15px 50px rgba(251, 191, 36, 0.4);
+      margin-top: 30px;
+    }
+
+    .combined-summary h2 {
+      color: white;
+      font-size: 2em;
+      margin-bottom: 25px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .summary-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .summary-card h4 {
+      color: #92400e;
+      font-size: 1em;
+      margin-bottom: 10px;
+    }
+
+    .summary-card .value {
+      color: #1e3c72;
+      font-size: 2em;
+      font-weight: bold;
+    }
+
+    @media (max-width: 768px) {
+      .scaling-header h1 { font-size: 2em; }
+      .input-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="scaling-header">
+      <h1>📈 SCALING ENGINE CALCULATOR 🚀</h1>
+      <div class="subtitle">✨ Ultimate Campaign Growth Calculator - Legendary Edition ✨</div>
+    </div>
+
+    <div id="campaignsContainer"></div>
+
+    <div class="action-buttons">
+      <button class="btn btn-add" onclick="addCampaign()">➕ Add Campaign</button>
+      <button class="btn btn-calculate" onclick="calculateAll()">🔥 Calculate Growth 🔥</button>
+    </div>
+
+    <div id="resultsSection" class="results show"></div>
+  </div>
+
+  <script>
+    let campaignCount = 0;
+
+    function addCampaign() {
+      campaignCount++;
+      const container = document.getElementById('campaignsContainer');
+      const campaignDiv = document.createElement('div');
+      campaignDiv.className = 'campaign-section';
+      campaignDiv.id = 'campaign-' + campaignCount;
+      
+      campaignDiv.innerHTML = `
+        <div class="campaign-header">
+          <h2>🎯 Campaign ${campaignCount}</h2>
+          <button class="remove-btn" onclick="removeCampaign(${campaignCount})">🗑️ Remove</button>
+        </div>
+        <div class="input-grid">
+          <div class="input-group">
+            <label>📝 Campaign Name</label>
+            <input type="text" id="name-${campaignCount}" value="Campaign ${campaignCount}" placeholder="e.g., Summer Sale">
+          </div>
+          <div class="input-group">
+            <label>💰 Start Budget (EGP)</label>
+            <input type="number" id="startBudget-${campaignCount}" value="500" step="1">
+          </div>
+          <div class="input-group">
+            <label>📈 Growth Rate (%)</label>
+            <input type="number" id="growthRate-${campaignCount}" value="25" step="0.1">
+          </div>
+          <div class="input-group">
+            <label>📦 Start Orders</label>
+            <input type="number" id="startOrders-${campaignCount}" value="15" step="1">
+          </div>
+          <div class="input-group">
+            <label>🎯 Target Orders</label>
+            <input type="number" id="targetOrders-${campaignCount}" value="100" step="1">
+          </div>
+          <div class="input-group">
+            <label>🚫 Budget Cap (EGP)</label>
+            <input type="number" id="budgetCap-${campaignCount}" value="3000" step="1">
+          </div>
+        </div>
+      `;
+      container.appendChild(campaignDiv);
+    }
+
+    function removeCampaign(id) {
+      const campaign = document.getElementById('campaign-' + id);
+      if (campaign) campaign.remove();
+    }
+
+    function calculateCampaign(startBudget, growthRate, startOrders, targetOrders, budgetCap) {
+      const dailyBudgets = [startBudget];
+      const dailyOrders = [startOrders];
+      
+      if (growthRate === 0) {
+        return { dailyBudgets, dailyOrders, days: 1, targetDay: 1 };
+      }
+      
+      const growthFactor = 1 + (growthRate / 100);
+      let day = 1;
+      let currentBudget = startBudget;
+      let currentOrders = startOrders;
+      let budgetCapReached = false;
+      
+      while (currentOrders < targetOrders) {
+        day++;
+        const nextBudget = startBudget * Math.pow(growthFactor, day - 1);
+        const nextOrders = startOrders * Math.pow(growthFactor, day - 1);
+        
+        if (budgetCap !== null && nextBudget > budgetCap) {
+          if (!budgetCapReached) {
+            budgetCapReached = true;
+            currentBudget = budgetCap;
+            currentOrders = nextOrders;
+          } else {
+            currentBudget = dailyBudgets[dailyBudgets.length - 1];
+            currentOrders = dailyOrders[dailyOrders.length - 1];
+          }
+        } else {
+          currentBudget = nextBudget;
+          currentOrders = nextOrders;
+        }
+        
+        dailyBudgets.push(currentBudget);
+        dailyOrders.push(currentOrders);
+        
+        if (day > 10 && budgetCapReached) {
+          const lastOrders = dailyOrders[dailyOrders.length - 2];
+          if (Math.abs(currentOrders - lastOrders) < 0.001) break;
+        }
+        
+        if (day > 1000) break;
+      }
+      
+      return { dailyBudgets, dailyOrders, days: day, targetDay: day };
+    }
+
+    function calculateAll() {
+      const campaigns = [];
+      const container = document.getElementById('campaignsContainer');
+      const campaignDivs = container.querySelectorAll('.campaign-section');
+      
+      if (campaignDivs.length === 0) {
+        alert('⚠️ Please add at least one campaign!');
+        return;
+      }
+      
+      campaignDivs.forEach(div => {
+        const id = div.id.split('-')[1];
+        const name = document.getElementById('name-' + id).value;
+        const startBudget = parseFloat(document.getElementById('startBudget-' + id).value);
+        const growthRate = parseFloat(document.getElementById('growthRate-' + id).value);
+        const startOrders = parseFloat(document.getElementById('startOrders-' + id).value);
+        const targetOrders = parseFloat(document.getElementById('targetOrders-' + id).value);
+        const budgetCap = parseFloat(document.getElementById('budgetCap-' + id).value);
+        
+        const result = calculateCampaign(startBudget, growthRate, startOrders, targetOrders, budgetCap);
+        campaigns.push({ name, startBudget, growthRate, startOrders, targetOrders, budgetCap, ...result });
+      });
+      
+      displayResults(campaigns);
+    }
+
+    function displayResults(campaigns) {
+      const resultsSection = document.getElementById('resultsSection');
+      let html = '';
+      
+      campaigns.forEach(campaign => {
+        const totalSpent = campaign.dailyBudgets.slice(0, campaign.targetDay).reduce((a, b) => a + b, 0);
+        const totalOrders = campaign.dailyOrders.slice(0, campaign.targetDay).reduce((a, b) => a + b, 0);
+        const avgDailyBudget = totalSpent / campaign.targetDay;
+        const avgDailyOrders = totalOrders / campaign.targetDay;
+        const roi = (totalOrders / totalSpent * 100).toFixed(2);
+        
+        html += `
+          <div class="campaign-result">
+            <div class="result-header">
+              <h3>📊 ${campaign.name}</h3>
+              <p>✅ Reaches ${campaign.targetOrders.toFixed(0)}+ orders/day on day ${campaign.targetDay}</p>
+            </div>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-label">💰 Total Spent</div>
+                <div class="stat-value">${totalSpent.toLocaleString()} EGP</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">📦 Total Orders</div>
+                <div class="stat-value">${totalOrders.toFixed(0)}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">📈 Avg Daily Budget</div>
+                <div class="stat-value">${avgDailyBudget.toFixed(2)} EGP</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">🎯 Avg Daily Orders</div>
+                <div class="stat-value">${avgDailyOrders.toFixed(1)}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">💡 Estimated ROI</div>
+                <div class="stat-value">${roi}%</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">📈 Growth Rate</div>
+                <div class="stat-value">${campaign.growthRate}%</div>
+              </div>
+            </div>
+            <div class="table-container">
+              <h4 style="margin-bottom: 15px; color: #1e3c72;">📋 ${campaign.targetDay}-Day Growth Data</h4>
+              <table>
+                <thead><tr><th>Day</th><th>Daily Budget (EGP)</th><th>Daily Orders</th></tr></thead>
+                <tbody>
+                  ${campaign.dailyBudgets.slice(0, campaign.targetDay).map((budget, i) => `
+                    <tr ${i === campaign.targetDay - 1 ? 'style="background: #bbf7d0; font-weight: bold;"' : ''}>
+                      <td>${i + 1}${i === campaign.targetDay - 1 ? ' 🎯' : ''}</td>
+                      <td>${budget.toFixed(2)}</td>
+                      <td>${campaign.dailyOrders[i].toFixed(0)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+      
+      if (campaigns.length > 1) {
+        const maxDays = Math.max(...campaigns.map(c => c.targetDay));
+        const totalSpentAll = campaigns.reduce((sum, c) => sum + c.dailyBudgets.slice(0, c.targetDay).reduce((a, b) => a + b, 0), 0);
+        const totalOrdersAll = campaigns.reduce((sum, c) => sum + c.dailyOrders.slice(0, c.targetDay).reduce((a, b) => a + b, 0), 0);
+        const avgDailyBudgetAll = totalSpentAll / maxDays;
+        const avgDailyOrdersAll = totalOrdersAll / maxDays;
+        const roiAll = (totalOrdersAll / totalSpentAll * 100).toFixed(2);
+        
+        // Aggregate daily budgets and orders for the combined table
+        const combinedDailyBudgets = [];
+        const combinedDailyOrders = [];
+        for (let day = 0; day < maxDays; day++) {
+          let dailyBudgetSum = 0;
+          let dailyOrderSum = 0;
+          campaigns.forEach(campaign => {
+            const index = Math.min(day, campaign.dailyBudgets.length - 1);
+            dailyBudgetSum += campaign.dailyBudgets[index];
+            dailyOrderSum += campaign.dailyOrders[index];
+          });
+          combinedDailyBudgets.push(dailyBudgetSum);
+          combinedDailyOrders.push(dailyOrderSum);
+        }
+        
+        html += `
+          <div class="combined-summary">
+            <h2>🌟 Combined Campaign Summary</h2>
+            <div class="summary-stats">
+              <div class="summary-card">
+                <h4>💰 Total Spent (All)</h4>
+                <div class="value">${totalSpentAll.toLocaleString()} EGP</div>
+              </div>
+              <div class="summary-card">
+                <h4>📦 Total Orders (All)</h4>
+                <div class="value">${totalOrdersAll.toFixed(0)}</div>
+              </div>
+              <div class="summary-card">
+                <h4>📈 Avg Daily Budget</h4>
+                <div class="value">${avgDailyBudgetAll.toFixed(2)} EGP</div>
+              </div>
+              <div class="summary-card">
+                <h4>🎯 Avg Daily Orders</h4>
+                <div class="value">${avgDailyOrdersAll.toFixed(1)}</div>
+              </div>
+              <div class="summary-card">
+                <h4>💡 Estimated ROI (All)</h4>
+                <div class="value">${roiAll}%</div>
+              </div>
+            </div>
+            <div class="table-container">
+              <h4 style="margin-bottom: 15px; color: #1e3c72;">📋 ${maxDays}-Day Combined Growth Data</h4>
+              <table>
+                <thead><tr><th>Day</th><th>Daily Budget (EGP)</th><th>Daily Orders</th></tr></thead>
+                <tbody>
+                  ${combinedDailyBudgets.map((budget, i) => `
+                    <tr ${i === maxDays - 1 ? 'style="background: #bbf7d0; font-weight: bold;"' : ''}>
+                      <td>${i + 1}${i === maxDays - 1 ? ' 🎯' : ''}</td>
+                      <td>${budget.toFixed(2)}</td>
+                      <td>${combinedDailyOrders[i].toFixed(0)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+      
+      resultsSection.innerHTML = html;
+      setTimeout(() => resultsSection.scrollIntoView({ behavior: 'smooth' }), 100);
+    }
+
+    addCampaign();
+  </script>
+</body>
+</html>

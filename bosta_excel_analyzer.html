@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOSTA Analytics Pro</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0e27; min-height: 100vh; color: #fff; overflow-x: hidden; }
+        .animated-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; background: linear-gradient(45deg, #0a0e27, #1a1f3a, #0a0e27); background-size: 400% 400%; animation: gradientShift 15s ease infinite; }
+        @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .particles { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        .particle { position: absolute; width: 4px; height: 4px; background: rgba(99, 102, 241, 0.5); border-radius: 50%; animation: float 20s infinite; }
+        @keyframes float { 0%, 100% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100vh) translateX(50px); opacity: 0; } }
+        .container { max-width: 1600px; margin: 0 auto; padding: 20px; position: relative; z-index: 2; }
+        .header { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 40px; border-radius: 24px; text-align: center; margin-bottom: 30px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%); animation: pulse 4s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 0.8; } }
+        .header h1 { font-size: 3em; background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 10px; position: relative; z-index: 1; font-weight: 800; letter-spacing: -1px; }
+        .header p { color: rgba(255, 255, 255, 0.7); font-size: 1.2em; position: relative; z-index: 1; }
+        .upload-section { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 50px; border-radius: 24px; margin-bottom: 30px; text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); }
+        .upload-section h2 { font-size: 2em; margin-bottom: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .upload-area { border: 2px dashed rgba(99, 102, 241, 0.5); border-radius: 20px; padding: 60px; cursor: pointer; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); background: rgba(99, 102, 241, 0.03); position: relative; overflow: hidden; }
+        .upload-area::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(99, 102, 241, 0.1); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .upload-area:hover::before { width: 500px; height: 500px; }
+        .upload-area:hover { border-color: #667eea; transform: scale(1.02); box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3); }
+        .upload-area input[type="file"] { display: none; }
+        .upload-icon { font-size: 5em; margin-bottom: 20px; position: relative; z-index: 1; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .upload-area h3, .upload-area p { position: relative; z-index: 1; }
+        .results-section { display: none; animation: slideUp 0.6s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .results-section.show { display: block; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin: 40px 0; }
+        .stat-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 35px; border-radius: 20px; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); opacity: 0; transition: opacity 0.4s; }
+        .stat-card:hover::before { opacity: 1; }
+        .stat-card:hover { transform: translateY(-10px) scale(1.02); border-color: rgba(99, 102, 241, 0.5); box-shadow: 0 20px 60px rgba(99, 102, 241, 0.3); }
+        .stat-card .icon { font-size: 3em; margin-bottom: 15px; display: block; position: relative; z-index: 1; }
+        .stat-card h3 { font-size: 2.8em; margin-bottom: 10px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800; position: relative; z-index: 1; }
+        .stat-card p { color: rgba(255, 255, 255, 0.7); font-size: 1.1em; font-weight: 500; position: relative; z-index: 1; }
+        .loading { display: none; text-align: center; padding: 60px; animation: fadeIn 0.5s; }
+        .loading.show { display: block; }
+        .spinner { width: 60px; height: 60px; margin: 0 auto 30px; border: 4px solid rgba(255, 255, 255, 0.1); border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .loading p { font-size: 1.3em; color: rgba(255, 255, 255, 0.8); }
+        .filter-section { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; margin: 25px 0; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
+        .filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .filter-group { display: flex; flex-direction: column; gap: 8px; }
+        .filter-section label { color: rgba(255, 255, 255, 0.9); font-weight: 600; font-size: 0.95em; text-transform: uppercase; letter-spacing: 0.5px; }
+        .filter-section select, .filter-section input[type="date"] { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 12px 16px; border-radius: 10px; font-size: 1em; transition: all 0.3s; cursor: pointer; }
+        .filter-section select option { background: #1a1f3a; color: white; padding: 10px; }
+        .filter-section select:focus, .filter-section input[type="date"]:focus { outline: none; border-color: #667eea; box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+        .filter-actions { display: flex; gap: 15px; justify-content: center; margin-top: 25px; flex-wrap: wrap; }
+        .clear-btn { background: rgba(255, 59, 48, 0.2); border: 1px solid rgba(255, 59, 48, 0.5); color: #ff9999; padding: 14px 32px; border-radius: 12px; cursor: pointer; font-weight: 600; transition: all 0.3s; font-size: 1em; }
+        .clear-btn:hover { background: rgba(255, 59, 48, 0.3); border-color: rgba(255, 59, 48, 0.8); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255, 59, 48, 0.3); }
+        .filter-info { display: none; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); padding: 20px 25px; border-radius: 15px; margin: 20px 0; border-left: 4px solid rgba(99, 102, 241, 0.8); color: rgba(255, 255, 255, 0.95); font-weight: 500; animation: slideIn 0.3s ease; box-shadow: 0 5px 20px rgba(99, 102, 241, 0.2); }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .filter-info.show { display: block; }
+        .filter-info strong { color: #fff; font-size: 1.05em; }
+        .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; margin: 25px 0; }
+        .chart-container { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); padding: 30px; border-radius: 20px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); }
+        .section-title { font-size: 2em; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 40px 0 25px 0; padding-bottom: 15px; border-bottom: 2px solid rgba(99, 102, 241, 0.3); font-weight: 700; }
+        .table-container { overflow-x: auto; margin: 25px 0; border-radius: 20px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: rgba(99, 102, 241, 0.2); color: white; padding: 20px; text-align: left; font-weight: 600; text-transform: uppercase; font-size: 0.9em; letter-spacing: 1px; }
+        td { padding: 18px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.8); }
+        tr { transition: all 0.3s; }
+        tr:hover { background: rgba(99, 102, 241, 0.1); }
+        .progress-bar { height: 35px; background: rgba(255, 255, 255, 0.05); border-radius: 20px; overflow: hidden; margin: 10px 0; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; }
+        .progress-fill::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent); animation: shimmer 2s infinite; }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+        .button-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 40px 0; }
+        .action-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 18px 40px; font-size: 1.1em; font-weight: 600; border-radius: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 30px rgba(99, 102, 241, 0.3); position: relative; overflow: hidden; }
+        .action-btn::before { content: ''; position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.2); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; }
+        .action-btn:hover::before { width: 300px; height: 300px; }
+        .action-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5); }
+        .action-btn span { position: relative; z-index: 1; }
+        @media (max-width: 768px) { .header h1 { font-size: 2em; } .stats-grid { grid-template-columns: 1fr; } .chart-row { grid-template-columns: 1fr; } .filter-row { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles" id="particles"></div>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ BOSTA ANALYTICS PRO ⚡</h1>
+            <p>Advanced Delivery Intelligence Dashboard</p>
+        </div>
+        <div class="upload-section">
+            <h2>📦 BOSTA Deliveries Analyzer</h2>
+            <p style="margin: 15px 0; color: rgba(255,255,255,0.7);">Upload your BOSTA Excel file for complete analysis</p>
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <div class="upload-icon">🚚</div>
+                <h3>Click to Upload Excel File</h3>
+                <p style="color: rgba(255,255,255,0.6);">or drag and drop your deliveries.xlsx file here</p>
+                <input type="file" id="file-input" accept=".xlsx,.xls">
+            </div>
+        </div>
+        <div class="loading" id="loading"><div class="spinner"></div><p>Analyzing your delivery data with AI insights...</p></div>
+        <div id="results" class="results-section"></div>
+    </div>
+    <script>
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        let originalData = null;
+        let currentFilteredData = null;
+        let charts = {};
+
+        document.getElementById('file-input').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                originalData = jsonData;
+                currentFilteredData = jsonData;
+                renderDashboard(jsonData);
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function parseDate(dateValue) {
+            if (!dateValue) return null;
+            if (dateValue instanceof Date) return dateValue;
+            if (typeof dateValue === 'number') return new Date((dateValue - 25569) * 86400 * 1000);
+            const parsed = new Date(dateValue);
+            return isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function getWeekKey(date) {
+            const onejan = new Date(date.getFullYear(), 0, 1);
+            const week = Math.ceil((((date - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+            return `Week ${week}, ${date.getFullYear()}`;
+        }
+
+        function renderDashboard(data) {
+            setTimeout(() => {
+                const analysis = analyzeData(data);
+                document.getElementById('loading').classList.remove('show');
+                document.getElementById('results').innerHTML = generateHTML(data, analysis);
+                document.getElementById('results').classList.add('show');
+                createCharts(analysis);
+            }, 800);
+        }
+
+        function analyzeData(data) {
+            const deliveryStates = {}, types = {}, hubs = {}, cities = {}, dailyDeliveries = {}, weeklyCOD = {};
+            let totalCOD = 0, deliveredCOD = 0, totalAttempts = 0, deliveredCount = 0, returnedCount = 0, cancelledCount = 0;
+
+            data.forEach(row => {
+                const state = row['Delivery State'] || 'Unknown';
+                const type = row['Type'] || 'Unknown';
+                const hub = row['Current Hub'] || 'Unknown';
+                const city = row['DropOff City'] || 'Unknown';
+                const cod = parseFloat(row['Cod Amount'] || 0);
+                const attempts = parseInt(row['Number Of attempts'] || 0);
+                const createdDate = parseDate(row['Created At']);
+                
+                deliveryStates[state] = (deliveryStates[state] || 0) + 1;
+                types[type] = (types[type] || 0) + 1;
+                hubs[hub] = (hubs[hub] || 0) + 1;
+                cities[city] = (cities[city] || 0) + 1;
+                
+                if (createdDate) {
+                    const dateKey = createdDate.toLocaleDateString();
+                    dailyDeliveries[dateKey] = (dailyDeliveries[dateKey] || 0) + 1;
+                    
+                    const weekKey = getWeekKey(createdDate);
+                    weeklyCOD[weekKey] = (weeklyCOD[weekKey] || 0) + cod;
+                }
+                
+                totalCOD += cod;
+                totalAttempts += attempts;
+                
+                const stateLower = state.toLowerCase();
+                if (stateLower === 'delivered') {
+                    deliveredCount++;
+                    deliveredCOD += cod;
+                } else if (stateLower.includes('return')) {
+                    returnedCount++;
+                } else if (stateLower.includes('cancel')) {
+                    cancelledCount++;
+                }
+            });
+
+            const avgAttempts = (totalAttempts / data.length).toFixed(2);
+            const deliveryRate = ((deliveredCount / data.length) * 100).toFixed(1);
+            const returnRate = ((returnedCount / data.length) * 100).toFixed(1);
+            const avgCOD = (totalCOD / data.length).toFixed(2);
+
+            return { deliveryStates, types, hubs, cities, dailyDeliveries, weeklyCOD, totalCOD, deliveredCOD, avgAttempts, deliveryRate, returnRate, deliveredCount, returnedCount, cancelledCount, avgCOD };
+        }
+
+        function applyFilters() {
+            const stateFilter = document.getElementById('state-filter').value;
+            const typeFilter = document.getElementById('type-filter').value;
+            const hubFilter = document.getElementById('hub-filter').value;
+            const cityFilter = document.getElementById('city-filter').value;
+            const dateFromFilter = document.getElementById('date-from-filter').value;
+            const dateToFilter = document.getElementById('date-to-filter').value;
+
+            let filteredData = [...originalData];
+
+            if (stateFilter) filteredData = filteredData.filter(row => (row['Delivery State'] || 'Unknown') === stateFilter);
+            if (typeFilter) filteredData = filteredData.filter(row => (row['Type'] || 'Unknown') === typeFilter);
+            if (hubFilter) filteredData = filteredData.filter(row => (row['Current Hub'] || 'Unknown') === hubFilter);
+            if (cityFilter) filteredData = filteredData.filter(row => (row['DropOff City'] || 'Unknown') === cityFilter);
+            
+            if (dateFromFilter) {
+                const fromDate = new Date(dateFromFilter);
+                fromDate.setHours(0, 0, 0, 0);
+                filteredData = filteredData.filter(row => {
+                    const rowDate = parseDate(row['Created At']);
+                    return rowDate && rowDate >= fromDate;
+                });
+            }
+            
+            if (dateToFilter) {
+                const toDate = new Date(dateToFilter);
+                toDate.setHours(23, 59, 59, 999);
+                filteredData = filteredData.filter(row => {
+                    const rowDate = parseDate(row['Created At']);
+                    return rowDate && rowDate <= toDate;
+                });
+            }
+
+            if (filteredData.length === 0) {
+                alert('⚠️ No deliveries match the selected filters');
+                return;
+            }
+
+            currentFilteredData = filteredData;
+            const filterInfo = document.getElementById('filter-info');
+            const activeFilters = [];
+            if (stateFilter) activeFilters.push(`State: ${stateFilter}`);
+            if (typeFilter) activeFilters.push(`Type: ${typeFilter}`);
+            if (hubFilter) activeFilters.push(`Hub: ${hubFilter}`);
+            if (cityFilter) activeFilters.push(`City: ${cityFilter}`);
+            if (dateFromFilter) activeFilters.push(`From: ${dateFromFilter}`);
+            if (dateToFilter) activeFilters.push(`To: ${dateToFilter}`);
+            
+            if (activeFilters.length > 0) {
+                filterInfo.innerHTML = `<strong>🔍 Active Filters:</strong> ${activeFilters.join(' • ')} <strong>• Results: ${filteredData.length} deliveries</strong>`;
+                filterInfo.classList.add('show');
+            } else {
+                filterInfo.classList.remove('show');
+            }
+            updateDashboardContent(filteredData);
+        }
+
+        function updateDashboardContent(data) {
+            const analysis = analyzeData(data);
+            document.getElementById('stats-grid').innerHTML = generateStatsCards(data, analysis);
+            document.getElementById('state-table').innerHTML = generateStateTable(analysis.deliveryStates, data.length);
+            document.getElementById('city-table').innerHTML = generateCityTable(analysis.cities, data.length);
+            document.getElementById('type-table').innerHTML = generateTypeTable(analysis.types, data.length);
+            createCharts(analysis);
+        }
+
+        function clearFilters() {
+            document.getElementById('state-filter').value = '';
+            document.getElementById('type-filter').value = '';
+            document.getElementById('hub-filter').value = '';
+            document.getElementById('city-filter').value = '';
+            document.getElementById('date-from-filter').value = '';
+            document.getElementById('date-to-filter').value = '';
+            document.getElementById('filter-info').classList.remove('show');
+            currentFilteredData = originalData;
+            updateDashboardContent(originalData);
+        }
+
+        function generateHTML(data, analysis) {
+            return `
+                <h2 class="section-title">📊 Performance Dashboard</h2>
+                <div class="stats-grid" id="stats-grid">${generateStatsCards(data, analysis)}</div>
+                <h2 class="section-title">🔍 Advanced Filtering</h2>
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-group"><label>Delivery State:</label><select id="state-filter"><option value="">All States</option>${Object.keys(analysis.deliveryStates).map(s => `<option value="${s}">${s}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>Type:</label><select id="type-filter"><option value="">All Types</option>${Object.keys(analysis.types).map(t => `<option value="${t}">${t}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>Hub:</label><select id="hub-filter"><option value="">All Hubs</option>${Object.keys(analysis.hubs).map(h => `<option value="${h}">${h}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>City:</label><select id="city-filter"><option value="">All Cities</option>${Object.keys(analysis.cities).map(c => `<option value="${c}">${c}</option>`).join('')}</select></div>
+                        <div class="filter-group"><label>From Date:</label><input type="date" id="date-from-filter"></div>
+                        <div class="filter-group"><label>To Date:</label><input type="date" id="date-to-filter"></div>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="action-btn" onclick="applyFilters()"><span>🔎 Apply Filters</span></button>
+                        <button class="clear-btn" onclick="clearFilters()">🔄 Clear All Filters</button>
+                    </div>
+                </div>
+                <div id="filter-info" class="filter-info"></div>
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="state-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="type-chart"></canvas></div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="weekly-cod-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="hub-chart"></canvas></div>
+                </div>
+                <div class="chart-row">
+                    <div class="chart-container"><canvas id="timeline-chart"></canvas></div>
+                    <div class="chart-container"><canvas id="city-chart"></canvas></div>
+                </div>
+                <div id="state-table">${generateStateTable(analysis.deliveryStates, data.length)}</div>
+                <div id="city-table">${generateCityTable(analysis.cities, data.length)}</div>
+                <div id="type-table">${generateTypeTable(analysis.types, data.length)}</div>
+                <div class="button-group">
+                    <button class="action-btn" onclick="downloadReport()"><span>📥 Download Report</span></button>
+                </div>
+            `;
+        }
+
+        function generateStatsCards(data, analysis) {
+            return `
+                <div class="stat-card"><span class="icon">📦</span><h3>${data.length}</h3><p>Total Deliveries</p></div>
+                <div class="stat-card"><span class="icon">✅</span><h3>${analysis.deliveredCount}</h3><p>Delivered</p></div>
+                <div class="stat-card"><span class="icon">💰</span><h3>${analysis.totalCOD.toFixed(2)}</h3><p>Total COD</p></div>
+                <div class="stat-card"><span class="icon">💵</span><h3>${analysis.deliveredCOD.toFixed(2)}</h3><p>Collected COD</p></div>
+                <div class="stat-card"><span class="icon">📈</span><h3>${analysis.deliveryRate}%</h3><p>Delivery Rate</p></div>
+            `;
+        }
+
+        function generateStateTable(deliveryStates, total) {
+            let html = '<h3 class="section-title">📋 Delivery State Breakdown</h3><div class="table-container"><table><thead><tr><th>State</th><th>Count</th><th>Percentage</th><th>Progress</th></tr></thead><tbody>';
+            Object.entries(deliveryStates).sort((a, b) => b[1] - a[1]).forEach(([state, count]) => {
+                const percentage = ((count / total) * 100).toFixed(2);
+                html += `<tr><td><strong>${state}</strong></td><td>${count}</td><td>${percentage}%</td><td><div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%">${percentage}%</div></div></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
+        }
+
+        function generateCityTable(cities, total) {
+            const topCities = Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 15);
+            let html = '<h3 class="section-title">🏙️ Top 15 Cities</h3><div class="table-container"><table><thead><tr><th>Rank</th><th>City</th><th>Deliveries</th><th>Share</th></tr></thead><tbody>';
+            topCities.forEach(([city, count], index) => {
+                const medals = ['🥇', '🥈', '🥉'];
+                const medal = medals[index] || `#${index + 1}`;
+                const share = ((count / total) * 100).toFixed(1);
+                html += `<tr><td><strong style="font-size: 1.3em;">${medal}</strong></td><td>${city}</td><td>${count}</td><td><div class="progress-bar"><div class="progress-fill" style="width: ${share}%">${share}%</div></div></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
+        }
+
+        function generateTypeTable(types, total) {
+            let html = '<h3 class="section-title">📦 Delivery Types</h3><div class="table-container"><table><thead><tr><th>Type</th><th>Count</th><th>Percentage</th><th>Progress</th></tr></thead><tbody>';
+            Object.entries(types).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
+                const percentage = ((count / total) * 100).toFixed(2);
+                html += `<tr><td><strong>${type}</strong></td><td>${count}</td><td>${percentage}%</td><td><div class="progress-bar"><div class="progress-fill" style="width: ${percentage}%">${percentage}%</div></div></td></tr>`;
+            });
+            return html + '</tbody></table></div>';
+        }
+
+        function createCharts(analysis) {
+            createStateChart(analysis.deliveryStates);
+            createTypeChart(analysis.types);
+            createWeeklyCODChart(analysis.weeklyCOD);
+            createHubChart(analysis.hubs);
+            createTimelineChart(currentFilteredData);
+            createCityChart(analysis.cities);
+        }
+
+        function createStateChart(deliveryStates) {
+            const ctx = document.getElementById('state-chart');
+            if (!ctx) return;
+            const colors = ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 'rgba(240, 147, 251, 0.8)', 'rgba(79, 172, 254, 0.8)', 'rgba(67, 233, 123, 0.8)', 'rgba(250, 112, 154, 0.8)'];
+            if (charts.state) charts.state.destroy();
+            charts.state = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(deliveryStates),
+                    datasets: [{data: Object.values(deliveryStates), backgroundColor: colors, borderWidth: 3, borderColor: 'rgba(10, 14, 39, 0.8)'}]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'bottom', labels: {padding: 20, font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Delivery State Distribution', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    }
+                }
+            });
+        }
+
+        function createTypeChart(types) {
+            const ctx = document.getElementById('type-chart');
+            if (!ctx) return;
+            if (charts.type) charts.type.destroy();
+            charts.type = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(types),
+                    datasets: [{
+                        data: Object.values(types),
+                        backgroundColor: ['rgba(102, 126, 234, 0.8)', 'rgba(118, 75, 162, 0.8)', 'rgba(240, 147, 251, 0.8)', 'rgba(67, 233, 123, 0.8)'],
+                        borderWidth: 3,
+                        borderColor: 'rgba(10, 14, 39, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {position: 'bottom', labels: {padding: 20, font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Delivery Types', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    }
+                }
+            });
+        }
+
+        function createWeeklyCODChart(weeklyCOD) {
+            const ctx = document.getElementById('weekly-cod-chart');
+            if (!ctx) return;
+            const sortedWeeks = Object.keys(weeklyCOD).sort();
+            const lastWeeks = sortedWeeks.slice(-12);
+            const weeklyData = lastWeeks.map(week => weeklyCOD[week]);
+            
+            if (charts.weeklyCOD) charts.weeklyCOD.destroy();
+            charts.weeklyCOD = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: lastWeeks,
+                    datasets: [{
+                        label: 'Weekly COD', 
+                        data: weeklyData, 
+                        backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                        borderColor: 'rgba(240, 147, 251, 1)', 
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgba(240, 147, 251, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Weekly COD Collection Trend', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)', maxRotation: 45, minRotation: 45}}
+                    }
+                }
+            });
+        }
+
+        function createHubChart(hubs) {
+            const ctx = document.getElementById('hub-chart');
+            if (!ctx) return;
+            const topHubs = Object.entries(hubs).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            const labels = topHubs.map(h => h[0].length > 20 ? h[0].substring(0, 20) + '...' : h[0]);
+            const data = topHubs.map(h => h[1]);
+            if (charts.hub) charts.hub.destroy();
+            charts.hub = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{label: 'Deliveries', data: data, backgroundColor: 'rgba(118, 75, 162, 0.8)', borderColor: 'rgba(118, 75, 162, 1)', borderWidth: 2}]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Top Hubs by Volume', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)', maxRotation: 45, minRotation: 45}}
+                    }
+                }
+            });
+        }
+
+        function createTimelineChart(data) {
+            const ctx = document.getElementById('timeline-chart');
+            if (!ctx) return;
+            const dailyCounts = {};
+            data.forEach(row => {
+                const date = parseDate(row['Created At']);
+                if (date) {
+                    const dateKey = date.toLocaleDateString();
+                    dailyCounts[dateKey] = (dailyCounts[dateKey] || 0) + 1;
+                }
+            });
+            const sortedDates = Object.keys(dailyCounts).sort((a, b) => new Date(a) - new Date(b)).slice(-30);
+            const counts = sortedDates.map(d => dailyCounts[d]);
+            if (charts.timeline) charts.timeline.destroy();
+            charts.timeline = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: sortedDates,
+                    datasets: [{
+                        label: 'Daily Deliveries',
+                        data: counts,
+                        borderColor: 'rgba(67, 233, 123, 1)',
+                        backgroundColor: 'rgba(67, 233, 123, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Delivery Timeline (Last 30 Days)', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        y: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        x: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)', maxRotation: 45, minRotation: 45}}
+                    }
+                }
+            });
+        }
+
+        function createCityChart(cities) {
+            const ctx = document.getElementById('city-chart');
+            if (!ctx) return;
+            const topCities = Object.entries(cities).sort((a, b) => b[1] - a[1]).slice(0, 10);
+            if (charts.city) charts.city.destroy();
+            charts.city = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: topCities.map(c => c[0]),
+                    datasets: [{label: 'Deliveries', data: topCities.map(c => c[1]), backgroundColor: 'rgba(79, 172, 254, 0.8)', borderColor: 'rgba(79, 172, 254, 1)', borderWidth: 2}]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {labels: {font: {size: 13, weight: '600'}, color: 'rgba(255, 255, 255, 0.9)'}},
+                        title: {display: true, text: 'Top 10 Cities', font: {size: 18, weight: 'bold'}, color: 'rgba(255, 255, 255, 0.95)', padding: 20}
+                    },
+                    scales: {
+                        x: {beginAtZero: true, grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}},
+                        y: {grid: {color: 'rgba(255, 255, 255, 0.1)'}, ticks: {color: 'rgba(255, 255, 255, 0.8)'}}
+                    }
+                }
+            });
+        }
+
+        function downloadReport() {
+            if (!currentFilteredData) return;
+            const analysis = analyzeData(currentFilteredData);
+            const now = new Date();
+            const reportId = 'BOSTA-' + Date.now();
+            
+            let report = '';
+            report += '╔════════════════════════════════════════════════════════════════════════════════════════╗\n';
+            report += '║                                                                                        ║\n';
+            report += '║                          ⚡ BOSTA ANALYTICS PRO ⚡                          ║\n';
+            report += '║                           DELIVERY INTELLIGENCE REPORT                           ║\n';
+            report += '║                                                                                        ║\n';
+            report += '╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n';
+            
+            const dateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = now.toLocaleTimeString('en-US');
+            report += '📅 Report Generated: ' + dateStr + ' at ' + timeStr + '\n\n';
+            
+            report += '╔════════════════════════════════════════════════════════════════════════════════════════╗\n';
+            report += '║                                 📊 EXECUTIVE SUMMARY                                 ║\n';
+            report += '╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n';
+            
+            report += '┌─ OVERVIEW\n';
+            report += '│  📦 Total Deliveries: ' + currentFilteredData.length.toLocaleString() + '\n';
+            report += '│  📂 Dataset Coverage: Complete (100.0% of analyzed records)\n';
+            report += '│  🏢 Active Hubs: ' + Object.keys(analysis.hubs).length + '\n';
+            report += '│  🏙️  Cities Serviced: ' + Object.keys(analysis.cities).length + '\n';
+            report += '└─\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 💰 FINANCIAL PERFORMANCE                                                               │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            report += '│   Total COD Amount:         ' + analysis.totalCOD.toFixed(2).padStart(10) + '                                                │\n';
+            report += '│   Collected COD:            ' + analysis.deliveredCOD.toFixed(2).padStart(10) + '                                                │\n';
+            const collRate = ((analysis.deliveredCOD/analysis.totalCOD)*100).toFixed(1);
+            report += '│   Collection Rate:                ' + collRate.padStart(5) + '%                                               │\n';
+            report += '│   Average COD per Order:    ' + analysis.avgCOD.padStart(10) + '                                                │\n';
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 📈 DELIVERY PERFORMANCE METRICS                                                        │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            const deliveredBar = '█'.repeat(Math.floor(parseFloat(analysis.deliveryRate) / 2.5)) + '░'.repeat(40 - Math.floor(parseFloat(analysis.deliveryRate) / 2.5));
+            const returnBar = '█'.repeat(Math.floor(parseFloat(analysis.returnRate) / 2.5)) + '░'.repeat(40 - Math.floor(parseFloat(analysis.returnRate) / 2.5));
+            report += '│   ✅ Delivered:       ' + analysis.deliveredCount.toString().padStart(6) + ' orders   ' + analysis.deliveryRate.padStart(5) + '% ' + deliveredBar + ' │\n';
+            report += '│   🔄 Returned:        ' + analysis.returnedCount.toString().padStart(6) + ' orders   ' + analysis.returnRate.padStart(5) + '% ' + returnBar + ' │\n';
+            report += '│   🚫 Cancelled:       ' + analysis.cancelledCount.toString().padStart(6) + ' orders                                              │\n';
+            report += '│   🎯 Avg Attempts:    ' + analysis.avgAttempts.padStart(6) + ' per delivery                                          │\n';
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n';
+            
+            report += '┌────────────────────────────────────────────────────────────────────────────────────────┐\n';
+            report += '│ 📋 DELIVERY STATE DISTRIBUTION                                                         │\n';
+            report += '├────────────────────────────────────────────────────────────────────────────────────────┤\n';
+            const sortedStates = Object.entries(analysis.deliveryStates).sort((a, b) => b[1] - a[1]);
+            sortedStates.forEach(function(entry) {
+                const state = entry[0];
+                const count = entry[1];
+                const percentage = ((count / currentFilteredData.length) * 100).toFixed(1);
+                const barLength = Math.floor(parseFloat(percentage) / 2.5);
+                const bar = '█'.repeat(barLength) + '░'.repeat(40 - barLength);
+                const stateName = state.length > 20 ? state.substring(0, 17) + '...' : state.padEnd(20);
+                report += '│   ' + stateName + ' ' + count.toString().padStart(6) + ' orders   ' + percentage.padStart(5) + '% ' + bar + ' │\n';
+            });
+            report += '└────────────────────────────────────────────────────────────────────────────────────────┘\n\n\n';
+            
+            report += '╔════════════════════════════════════════════════════════════════════════════════════════╗\n';
+            report += '║                                                                                        ║\n';
+            report += '║                            END OF REPORT - THANK YOU                            ║\n';
+            report += '║                                                                                        ║\n';
+            report += '╚════════════════════════════════════════════════════════════════════════════════════════╝\n\n';
+            
+            report += 'Report ID: ' + reportId + '\n';
+            report += 'Generated By: BOSTA Analytics Pro v2.0\n';
+            report += 'Data Source: Complete Dataset\n';
+            report += 'Total Records Analyzed: ' + currentFilteredData.length.toLocaleString() + '\n';
+
+            const blob = new Blob([report], {type: 'text/plain; charset=utf-8'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const year = now.getFullYear();
+            const month = (now.getMonth()+1).toString().padStart(2,'0');
+            const day = now.getDate().toString().padStart(2,'0');
+            a.download = 'BOSTA_Intelligence_Report_' + year + '_' + month + '_' + day + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

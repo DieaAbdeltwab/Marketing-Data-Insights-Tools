@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ultimate Funnel & ROI Analyzer Pro</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.2), transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.15), transparent 50%),
+        radial-gradient(circle at 50% 20%, rgba(139, 92, 246, 0.1), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+      animation: bgPulse 25s ease-in-out infinite;
+    }
+
+    @keyframes bgPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .roi-header {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+      backdrop-filter: blur(30px);
+      border-radius: 35px;
+      padding: 60px 40px;
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6), 0 0 80px rgba(102, 126, 234, 0.2);
+      margin-bottom: 30px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .roi-header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+      animation: shimmer 6s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+      100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+    }
+
+    .roi-header h1 {
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 50%, #8b5cf6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: 4em;
+      margin-bottom: 15px;
+      font-weight: 900;
+      letter-spacing: -3px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .roi-header .subtitle {
+      color: #94a3b8;
+      font-size: 1.3em;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      position: relative;
+      z-index: 1;
+    }
+
+    .input-section {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+      backdrop-filter: blur(30px);
+      border-radius: 35px;
+      padding: 45px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5), 0 0 80px rgba(102, 126, 234, 0.15);
+      margin-bottom: 30px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .input-section h2 {
+      color: #f1f5f9;
+      margin-bottom: 35px;
+      font-size: 2.2em;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 900;
+      padding-bottom: 20px;
+      border-bottom: 3px solid;
+      border-image: linear-gradient(90deg, #667eea, #ec4899) 1;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 35px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .input-group label {
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #f1f5f9;
+      font-size: 0.95em;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      padding: 18px 22px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      border-radius: 16px;
+      font-size: 1.05em;
+      transition: all 0.3s ease;
+      background: rgba(15, 23, 42, 0.6);
+      font-weight: 600;
+      color: #f1f5f9;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: #667eea;
+      background: rgba(15, 23, 42, 0.8);
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .analyze-btn {
+      padding: 26px;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      color: white;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.5em;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      box-shadow: 0 20px 40px rgba(102, 126, 234, 0.5);
+      text-transform: uppercase;
+    }
+
+    .analyze-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 25px 60px rgba(102, 126, 234, 0.7);
+    }
+
+    .reset-btn, .export-btn {
+      padding: 24px;
+      background: linear-gradient(135deg, #475569 0%, #334155 100%);
+      color: white;
+      border: none;
+      border-radius: 18px;
+      font-size: 1.1em;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+    }
+
+    .results {
+      display: none;
+      animation: fadeInUp 0.8s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(40px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .results.show {
+      display: block;
+    }
+
+    .performance-card {
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 50%, #8b5cf6 100%);
+      color: white;
+      padding: 60px;
+      border-radius: 35px;
+      text-align: center;
+      margin-bottom: 30px;
+      box-shadow: 0 40px 100px rgba(102, 126, 234, 0.6);
+    }
+
+    .performance-card h2 {
+      font-size: 1.8em;
+      font-weight: 800;
+      margin-bottom: 25px;
+    }
+
+    .performance-score {
+      font-size: 6.5em;
+      font-weight: 900;
+      margin: 25px 0;
+    }
+
+    .performance-rating {
+      font-size: 1.8em;
+      margin-top: 25px;
+      font-weight: 800;
+    }
+
+    .hero-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 30px;
+    }
+
+    .hero-card {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+      backdrop-filter: blur(30px);
+      border-radius: 28px;
+      padding: 45px 35px;
+      text-align: center;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      transition: all 0.5s ease;
+    }
+
+    .hero-card:hover {
+      transform: translateY(-10px) scale(1.03);
+      box-shadow: 0 40px 100px rgba(102, 126, 234, 0.5);
+    }
+
+    .hero-icon {
+      font-size: 3em;
+      margin-bottom: 20px;
+    }
+
+    .hero-label {
+      font-size: 0.9em;
+      color: #94a3b8;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      margin-bottom: 20px;
+    }
+
+    .hero-value {
+      font-size: 3.5em;
+      font-weight: 900;
+      margin: 20px 0;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 0.95em;
+      color: #64748b;
+      font-weight: 600;
+      margin-top: 15px;
+    }
+
+    .comparison-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .comparison-card-premium {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.98) 0%, rgba(31, 41, 55, 0.98) 100%);
+      backdrop-filter: blur(40px);
+      border-radius: 30px;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      transition: all 0.5s ease;
+    }
+
+    .comparison-card-premium:hover {
+      transform: translateY(-12px) scale(1.02);
+      box-shadow: 0 40px 120px rgba(102, 126, 234, 0.6);
+    }
+
+    .comparison-header {
+      background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(236, 72, 153, 0.15) 100%);
+      padding: 30px 35px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      border-bottom: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .header-icon {
+      font-size: 3em;
+    }
+
+    .header-text {
+      flex: 1;
+    }
+
+    .header-title {
+      font-size: 1.3em;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 0.85em;
+      color: #94a3b8;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .comparison-stats {
+      padding: 35px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 25px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+      border-radius: 18px;
+      margin-bottom: 15px;
+      border-left: 4px solid rgba(102, 126, 234, 0.3);
+      transition: all 0.4s ease;
+    }
+
+    .stat-row:hover {
+      transform: translateX(10px);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+    }
+
+    .stat-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .stat-icon {
+      font-size: 1.8em;
+    }
+
+    .stat-label {
+      font-size: 0.95em;
+      color: #cbd5e1;
+      font-weight: 700;
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: 900;
+      color: #f1f5f9;
+    }
+
+    .alert-banner {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);
+      border: 2px solid rgba(239, 68, 68, 0.5);
+      border-radius: 20px;
+      padding: 25px 30px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .alert-banner.success {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.15) 100%);
+      border-color: rgba(16, 185, 129, 0.5);
+    }
+
+    .alert-banner.warning {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(217, 119, 6, 0.15) 100%);
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    .alert-icon {
+      font-size: 2.5em;
+    }
+
+    .alert-content {
+      flex: 1;
+    }
+
+    .alert-title {
+      font-size: 1.2em;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+
+    .alert-message {
+      color: #cbd5e1;
+      font-size: 1em;
+    }
+
+    .funnel-viz {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+      backdrop-filter: blur(30px);
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      margin-bottom: 30px;
+      text-align: center;
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .funnel-viz h2 {
+      color: #f1f5f9;
+      font-size: 2em;
+      margin-bottom: 30px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .funnel-stage {
+      margin: 20px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      color: white;
+      border-radius: 15px;
+      font-size: 1.3em;
+      font-weight: bold;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+      min-width: 200px;
+    }
+
+    .funnel-stage::after {
+      content: '▼';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.5em;
+      color: #667eea;
+    }
+
+    .funnel-stage:last-child::after {
+      display: none;
+    }
+
+    .recommendations {
+      background: linear-gradient(135deg, rgba(17, 24, 39, 0.95) 0%, rgba(31, 41, 55, 0.95) 100%);
+      backdrop-filter: blur(30px);
+      border-radius: 30px;
+      padding: 40px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+      border: 2px solid rgba(102, 126, 234, 0.3);
+    }
+
+    .recommendations h2 {
+      color: #f1f5f9;
+      font-size: 2em;
+      margin-bottom: 20px;
+      font-weight: 900;
+      background: linear-gradient(135deg, #667eea 0%, #ec4899 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .recommendation-item {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.6) 0%, rgba(30, 41, 59, 0.6) 100%);
+      padding: 20px;
+      border-left: 4px solid rgba(102, 126, 234, 0.3);
+      margin-bottom: 15px;
+      border-radius: 10px;
+      font-size: 1.1em;
+      color: #f1f5f9;
+      transition: all 0.3s ease;
+    }
+
+    .recommendation-item:hover {
+      transform: translateX(5px);
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.9) 100%);
+    }
+
+    @media (max-width: 768px) {
+      .roi-header h1 { font-size: 2.5em; }
+      .input-grid { grid-template-columns: 1fr; }
+      .button-group { grid-template-columns: 1fr; }
+      .hero-metrics { grid-template-columns: 1fr; }
+      .comparison-section { grid-template-columns: 1fr; }
+      .funnel-stage { font-size: 1.1em; padding: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="roi-header">
+      <h1>💎 Ultimate Funnel & ROI Analyzer Pro</h1>
+      <div class="subtitle">Advanced Marketing Analytics Dashboard</div>
+    </div>
+
+    <div class="input-section">
+      <h2>🔥 Campaign Configuration</h2>
+      
+      <div class="input-grid">
+        <div class="input-group">
+          <label>💸 Amount Spent (£)</label>
+          <input type="number" id="fAmountSpent" value="500" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>🎯 Results (Sales)</label>
+          <input type="number" id="fResults" value="40">
+        </div>
+        <div class="input-group">
+          <label>💵 Cost per Purchase (£)</label>
+          <input type="number" id="fCpp" value="20" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>📊 CPM (£)</label>
+          <input type="number" id="fCpm" value="5.5" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>🔄 Frequency</label>
+          <input type="number" id="fFrequency" value="1.8" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>🎬 Video Play Rate (%)</label>
+          <input type="number" id="fVideoRate" value="15" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>🖱️ CTR Link (%)</label>
+          <input type="number" id="fCtrLink" value="1.8" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>📄 Landing Page Rate (%)</label>
+          <input type="number" id="fLandingRate" value="75" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>🛒 Purchase Rate - Clicks (%)</label>
+          <input type="number" id="fPurchaseClicks" value="2.2" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>💰 Purchase Rate - Landing (%)</label>
+          <input type="number" id="fPurchaseLanding" value="3.5" step="0.1">
+        </div>
+        <div class="input-group">
+          <label>✅ Confirmation Rate (%)</label>
+          <input type="number" id="fConfirmationRate" value="49" step="0.1" min="0" max="100">
+        </div>
+        <div class="input-group">
+          <label>🚚 Delivery Rate (%)</label>
+          <input type="number" id="fDeliveryRate" value="63" step="0.1" min="0" max="100">
+        </div>
+        <div class="input-group">
+          <label>📦 Product Cost (£)</label>
+          <input type="number" id="fProductCost" value="70" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>💰 Selling Price (£)</label>
+          <input type="number" id="fSellingPrice" value="120" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>📬 Shipping Cost - Delivered (£)</label>
+          <input type="number" id="fShippingDelivered" value="30" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>📭 Shipping Cost - Failed (£)</label>
+          <input type="number" id="fShippingFailed" value="20" step="0.01">
+        </div>
+        <div class="input-group">
+          <label>❌ Shipping Cost - Cancelled (£)</label>
+          <input type="number" id="fShippingCancelled" value="0" step="0.01">
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="analyze-btn" id="fAnalyzeButton">🚀 Analyze Campaign</button>
+        <button class="export-btn" id="exportBtn">📊 Export Data</button>
+        <button class="reset-btn" id="resetBtn">🔄 Reset</button>
+      </div>
+    </div>
+
+    <div class="results" id="resultsDiv">
+      <div id="alertContainer"></div>
+
+      <div class="performance-card">
+        <h2>⭐ Overall Performance Score</h2>
+        <div class="performance-score" id="score">-</div>
+        <div class="performance-rating" id="rating">Analyzing...</div>
+      </div>
+
+      <div class="hero-metrics">
+        <div class="hero-card">
+          <div class="hero-icon">📊</div>
+          <div class="hero-label">ROAS</div>
+          <div class="hero-value" id="heroROAS">-</div>
+          <div class="hero-subtitle">Return on Ad Spend</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-icon">💎</div>
+          <div class="hero-label">ROI</div>
+          <div class="hero-value" id="heroROI">-</div>
+          <div class="hero-subtitle">Return on Investment</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-icon">💰</div>
+          <div class="hero-label">CPP</div>
+          <div class="hero-value" id="heroCPP">-</div>
+          <div class="hero-subtitle">Cost Per Purchase</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-icon">📈</div>
+          <div class="hero-label">CPO</div>
+          <div class="hero-value" id="heroCPO">-</div>
+          <div class="hero-subtitle">Cost Per Order</div>
+        </div>
+        <div class="hero-card">
+          <div class="hero-icon">💡</div>
+          <div class="hero-label">MAX CPA</div>
+          <div class="hero-value" id="heroMaxCPA">-</div>
+          <div class="hero-subtitle">Maximum Profitable CPA</div>
+        </div>
+      </div>
+
+      <div class="comparison-section">
+        <div class="comparison-card-premium">
+          <div class="comparison-header">
+            <div class="header-icon">💰</div>
+            <div class="header-text">
+              <div class="header-title">REVENUE BREAKDOWN</div>
+              <div class="header-subtitle">Financial Performance</div>
+            </div>
+          </div>
+          <div class="comparison-stats">
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">💵</div>
+                <div class="stat-label">Total Revenue</div>
+              </div>
+              <div class="stat-value" id="comp1">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">🟢</div>
+                <div class="stat-label">Net Profit</div>
+              </div>
+              <div class="stat-value" id="comp2">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">💚</div>
+                <div class="stat-label">Gross Profit</div>
+              </div>
+              <div class="stat-value" id="comp3">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">💎</div>
+                <div class="stat-label">Profit Margin</div>
+              </div>
+              <div class="stat-value" id="comp4">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-card-premium">
+          <div class="comparison-header">
+            <div class="header-icon">📦</div>
+            <div class="header-text">
+              <div class="header-title">ORDER METRICS</div>
+              <div class="header-subtitle">Conversion Pipeline</div>
+            </div>
+          </div>
+          <div class="comparison-stats">
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">👁️</div>
+                <div class="stat-label">Impressions</div>
+              </div>
+              <div class="stat-value" id="comp5">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">🖱️</div>
+                <div class="stat-label">Clicks</div>
+              </div>
+              <div class="stat-value" id="comp6">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">📄</div>
+                <div class="stat-label">Landing Views</div>
+              </div>
+              <div class="stat-value" id="comp7">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-label">Purchases</div>
+              </div>
+              <div class="stat-value" id="comp8">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Confirmed Orders</div>
+              </div>
+              <div class="stat-value" id="comp9">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-label">Delivered Sales</div>
+              </div>
+              <div class="stat-value" id="comp10">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">❌</div>
+                <div class="stat-label">Failed Deliveries</div>
+              </div>
+              <div class="stat-value" id="comp11">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">🚫</div>
+                <div class="stat-label">Cancelled Orders</div>
+              </div>
+              <div class="stat-value" id="comp12">-</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="comparison-card-premium">
+          <div class="comparison-header">
+            <div class="header-icon">💸</div>
+            <div class="header-text">
+              <div class="header-title">COST ANALYSIS</div>
+              <div class="header-subtitle">Investment Breakdown</div>
+            </div>
+          </div>
+          <div class="comparison-stats">
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">📦</div>
+                <div class="stat-label">Total Product Cost</div>
+              </div>
+              <div class="stat-value" id="comp13">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">💸</div>
+                <div class="stat-label">Ad Spend</div>
+              </div>
+              <div class="stat-value" id="comp14">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">🚚</div>
+                <div class="stat-label">Total Shipping</div>
+              </div>
+              <div class="stat-value" id="comp15">-</div>
+            </div>
+            <div class="stat-row">
+              <div class="stat-left">
+                <div class="stat-icon">💼</div>
+                <div class="stat-label">Total Investment</div>
+              </div>
+              <div class="stat-value" id="comp16">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="funnel-viz">
+        <h2>🔻 Conversion Funnel Stages</h2>
+        <div class="funnel-stage" style="width: 90%;" id="fImpressions">
+          👁️ Impressions: -
+        </div>
+        <div class="funnel-stage" style="width: 75%;" id="fClicks">
+          🖱️ Clicks: -
+        </div>
+        <div class="funnel-stage" style="width: 60%;" id="fLanding">
+          📄 Landing Views: -
+        </div>
+        <div class="funnel-stage" style="width: 50%;" id="fPurchases">
+          🛒 Purchases: -
+        </div>
+        <div class="funnel-stage" style="width: 40%;" id="fConfirmed">
+          ✅ Confirmed: -
+        </div>
+        <div class="funnel-stage" style="width: 30%;" id="fDeliveredSales">
+          🚚 Delivered: -
+        </div>
+      </div>
+
+      <div class="recommendations">
+        <h2>💡 Recommendations</h2>
+        <div id="fRecommendationsList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function resetForm() {
+      document.getElementById('fAmountSpent').value = '500';
+      document.getElementById('fResults').value = '40';
+      document.getElementById('fCpp').value = '20';
+      document.getElementById('fCpm').value = '5.5';
+      document.getElementById('fFrequency').value = '1.8';
+      document.getElementById('fVideoRate').value = '15';
+      document.getElementById('fCtrLink').value = '1.8';
+      document.getElementById('fLandingRate').value = '75';
+      document.getElementById('fPurchaseClicks').value = '2.2';
+      document.getElementById('fPurchaseLanding').value = '3.5';
+      document.getElementById('fConfirmationRate').value = '49';
+      document.getElementById('fDeliveryRate').value = '63';
+      document.getElementById('fProductCost').value = '70';
+      document.getElementById('fSellingPrice').value = '120';
+      document.getElementById('fShippingDelivered').value = '30';
+      document.getElementById('fShippingFailed').value = '20';
+      document.getElementById('fShippingCancelled').value = '0';
+      document.getElementById('resultsDiv').classList.remove('show');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    document.getElementById('resetBtn').onclick = resetForm;
+
+    document.getElementById('exportBtn').onclick = function() {
+      if (!document.getElementById('resultsDiv').classList.contains('show')) {
+        alert('Please analyze the campaign first before exporting!');
+        return;
+      }
+
+      const inputs = {
+        amountSpent: parseFloat(document.getElementById('fAmountSpent').value) || 0,
+        results: parseFloat(document.getElementById('fResults').value) || 0,
+        cpp: parseFloat(document.getElementById('fCpp').value) || 0,
+        cpm: parseFloat(document.getElementById('fCpm').value) || 0,
+        frequency: parseFloat(document.getElementById('fFrequency').value) || 0,
+        videoRate: parseFloat(document.getElementById('fVideoRate').value) || 0,
+        ctrLink: parseFloat(document.getElementById('fCtrLink').value) || 0,
+        landingRate: parseFloat(document.getElementById('fLandingRate').value) || 0,
+        purchaseClicks: parseFloat(document.getElementById('fPurchaseClicks').value) || 0,
+        purchaseLanding: parseFloat(document.getElementById('fPurchaseLanding').value) || 0,
+        confirmationRate: parseFloat(document.getElementById('fConfirmationRate').value) || 0,
+        deliveryRate: parseFloat(document.getElementById('fDeliveryRate').value) || 0,
+        productCost: parseFloat(document.getElementById('fProductCost').value) || 0,
+        sellingPrice: parseFloat(document.getElementById('fSellingPrice').value) || 0,
+        shippingDelivered: parseFloat(document.getElementById('fShippingDelivered').value) || 0,
+        shippingFailed: parseFloat(document.getElementById('fShippingFailed').value) || 0,
+        shippingCancelled: parseFloat(document.getElementById('fShippingCancelled').value) || 0
+      };
+
+      const results = {
+        roas: document.getElementById('heroROAS').textContent,
+        roi: document.getElementById('heroROI').textContent,
+        cpp: document.getElementById('heroCPP').textContent,
+        cpo: document.getElementById('heroCPO').textContent,
+        maxCPA: document.getElementById('heroMaxCPA').textContent,
+        score: document.getElementById('score').textContent,
+        rating: document.getElementById('rating').textContent,
+        revenue: document.getElementById('comp1').textContent,
+        netProfit: document.getElementById('comp2').textContent,
+        grossProfit: document.getElementById('comp3').textContent,
+        profitMargin: document.getElementById('comp4').textContent,
+        impressions: document.getElementById('comp5').textContent,
+        clicks: document.getElementById('comp6').textContent,
+        landingViews: document.getElementById('comp7').textContent,
+        purchases: document.getElementById('comp8').textContent,
+        confirmedOrders: document.getElementById('comp9').textContent,
+        deliveredSales: document.getElementById('comp10').textContent,
+        failedDeliveries: document.getElementById('comp11').textContent,
+        cancelledOrders: document.getElementById('comp12').textContent,
+        totalProductCost: document.getElementById('comp13').textContent,
+        totalShipping: document.getElementById('comp15').textContent,
+        totalInvestment: document.getElementById('comp16').textContent
+      };
+
+      const recommendations = Array.from(document.getElementById('fRecommendationsList').children)
+        .map(item => item.textContent.replace(/^\d+\.\s/, ''));
+
+      const line = "═".repeat(80);
+      const thinLine = "─".repeat(80);
+      const date = new Date().toLocaleString();
+
+      let report = `
+${line}
+                🎯 ULTIMATE FUNNEL & ROI ANALYZER PRO 🎯
+                     Comprehensive Campaign Report
+${line}
+
+📅 Generated: ${date}
+
+${line}
+                           📊 EXECUTIVE SUMMARY
+${line}
+
+    ⭐ Performance Score:     ${results.score}/100
+    🏆 Rating:                ${results.rating}
+
+${thinLine}
+                         🎯 KEY PERFORMANCE METRICS
+${thinLine}
+
+    📊 ROAS (Return on Ad Spend):           ${results.roas}
+    💎 ROI (Return on Investment):          ${results.roi}
+    💰 Cost Per Purchase (CPP):             ${results.cpp}
+    📈 Cost Per Order (CPO):                ${results.cpo}
+    💡 Maximum Profitable CPA:              ${results.maxCPA}
+
+${line}
+                          💰 REVENUE BREAKDOWN
+${line}
+
+    💵 Total Revenue:                       ${results.revenue}
+    🟢 Net Profit:                          ${results.netProfit}
+    💚 Gross Profit:                        ${results.grossProfit}
+    💎 Profit Margin:                       ${results.profitMargin}
+
+${line}
+                          📦 CONVERSION FUNNEL
+${line}
+
+    👁️ Impressions:                        ${results.impressions}
+    🖱️ Clicks:                             ${results.clicks}
+    📄 Landing Views:                       ${results.landingViews}
+    🛒 Purchases:                           ${results.purchases}
+    ✅ Confirmed Orders:                    ${results.confirmedOrders}
+    🚚 Delivered Sales:                     ${results.deliveredSales}
+    ❌ Failed Deliveries:                   ${results.failedDeliveries}
+    🚫 Cancelled Orders:                    ${results.cancelledOrders}
+
+    📊 CTR Link:                            ${inputs.ctrLink}%
+    📊 Landing Page Rate:                   ${inputs.landingRate}%
+    📊 Purchase Rate (Clicks):              ${inputs.purchaseClicks}%
+    📊 Purchase Rate (Landing):             ${inputs.purchaseLanding}%
+    📊 Confirmation Rate:                   ${inputs.confirmationRate}%
+    📊 Delivery Rate:                       ${inputs.deliveryRate}%
+
+${line}
+                          💸 COST ANALYSIS
+${line}
+
+    💸 Ad Spend:                            £${inputs.amountSpent.toFixed(2)}
+    📦 Total Product Cost:                  ${results.totalProductCost}
+    🚚 Total Shipping:                      ${results.totalShipping}
+    ${thinLine}
+    💼 TOTAL INVESTMENT:                    ${results.totalInvestment}
+
+${line}
+                         🔧 CAMPAIGN CONFIGURATION
+${line}
+
+    💸 Amount Spent:                        £${inputs.amountSpent.toFixed(2)}
+    🎯 Results (Sales):                     ${inputs.results}
+    💵 Cost per Purchase:                   £${inputs.cpp.toFixed(2)}
+    📊 CPM:                                 £${inputs.cpm.toFixed(2)}
+    🔄 Frequency:                           ${inputs.frequency}
+    🎬 Video Play Rate:                     ${inputs.videoRate}%
+    🖱️ CTR Link:                           ${inputs.ctrLink}%
+    📄 Landing Page Rate:                   ${inputs.landingRate}%
+    🛒 Purchase Rate (Clicks):              ${inputs.purchaseClicks}%
+    💰 Purchase Rate (Landing):             ${inputs.purchaseLanding}%
+    ✅ Confirmation Rate:                   ${inputs.confirmationRate}%
+    🚚 Delivery Rate:                       ${inputs.deliveryRate}%
+    📦 Product Cost per Unit:               £${inputs.productCost.toFixed(2)}
+    💰 Selling Price per Unit:              £${inputs.sellingPrice.toFixed(2)}
+    📬 Shipping Cost (Delivered):           £${inputs.shippingDelivered.toFixed(2)}
+    📭 Shipping Cost (Failed):              £${inputs.shippingFailed.toFixed(2)}
+    ❌ Shipping Cost (Cancelled):           £${inputs.shippingCancelled.toFixed(2)}
+
+${line}
+                         💡 INSIGHTS & RECOMMENDATIONS
+${line}
+
+${recommendations.map((rec, i) => `    ${i + 1}. ${rec}`).join('\n')}
+
+${line}
+                         📈 OPTIMIZATION TARGETS
+${line}
+
+    🎯 Recommended ROAS Target:             3.0x or higher
+    🎯 Recommended ROI Target:              50%+ 
+    🎯 Recommended Profit Margin:           20%+
+    💡 Your Maximum CPA:                    ${results.maxCPA}
+       (Stay below this to remain profitable)
+
+${line}
+
+                Report generated by Ultimate Funnel & ROI Analyzer Pro
+                          Created for data-driven marketers
+                               © ${new Date().getFullYear()}
+
+${line}
+`;
+
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Funnel-ROI-Report-' + Date.now() + '.txt';
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+
+    document.getElementById('fAnalyzeButton').onclick = function() {
+      const data = {
+        amountSpent: parseFloat(document.getElementById('fAmountSpent').value) || 0,
+        results: parseFloat(document.getElementById('fResults').value) || 0,
+        cpp: parseFloat(document.getElementById('fCpp').value) || 0,
+        cpm: parseFloat(document.getElementById('fCpm').value) || 0,
+        frequency: parseFloat(document.getElementById('fFrequency').value) || 0,
+        videoRate: parseFloat(document.getElementById('fVideoRate').value) || 0,
+        ctrLink: parseFloat(document.getElementById('fCtrLink').value) || 0,
+        landingRate: parseFloat(document.getElementById('fLandingRate').value) || 0,
+        purchaseClicks: parseFloat(document.getElementById('fPurchaseClicks').value) || 0,
+        purchaseLanding: parseFloat(document.getElementById('fPurchaseLanding').value) || 0,
+        confirmationRate: parseFloat(document.getElementById('fConfirmationRate').value) || 0,
+        deliveryRate: parseFloat(document.getElementById('fDeliveryRate').value) || 0,
+        productCost: parseFloat(document.getElementById('fProductCost').value) || 0,
+        sellingPrice: parseFloat(document.getElementById('fSellingPrice').value) || 0,
+        shippingDelivered: parseFloat(document.getElementById('fShippingDelivered').value) || 0,
+        shippingFailed: parseFloat(document.getElementById('fShippingFailed').value) || 0,
+        shippingCancelled: parseFloat(document.getElementById('fShippingCancelled').value) || 0
+      };
+
+      // Funnel calculations with confirmation and delivery rates
+      const impressions = data.cpm > 0 ? (data.amountSpent / data.cpm) * 1000 : 0;
+      const linkClicks = impressions * (data.ctrLink / 100);
+      const landingViews = linkClicks * (data.landingRate / 100);
+      
+      // Apply confirmation and delivery rates like in ROI analyzer
+      const confirmedOrders = data.results * (data.confirmationRate / 100);
+      const deliveredOrders = confirmedOrders * (data.deliveryRate / 100);
+      const failedOrders = confirmedOrders - deliveredOrders;
+      const cancelledOrders = data.results - confirmedOrders;
+      const overallConvRate = (deliveredOrders / data.results) * 100;
+
+      // Funnel percentages
+      const impressionsPct = 100;
+      const clicksPct = impressions > 0 ? (linkClicks / impressions) * 100 : 0;
+      const landingViewsPct = linkClicks > 0 ? (landingViews / linkClicks) * 100 : 0;
+      const purchasesPct = landingViews > 0 ? (data.results / landingViews) * 100 : 0;
+      const confirmedPct = data.results > 0 ? (confirmedOrders / data.results) * 100 : 0;
+      const deliveredPct = confirmedOrders > 0 ? (deliveredOrders / confirmedOrders) * 100 : 0;
+
+      // CPO and CPP calculations
+      const standardCPO = data.results > 0 ? data.amountSpent / data.results : 0;
+      const realCPP = deliveredOrders > 0 ? data.amountSpent / deliveredOrders : 0;
+
+      // Revenue and costs (using delivered orders)
+      const revenue = deliveredOrders * data.sellingPrice;
+      const productCostTotal = deliveredOrders * data.productCost;
+      const shippingDelivered = deliveredOrders * data.shippingDelivered;
+      const shippingFailed = failedOrders * data.shippingFailed;
+      const shippingCancelled = cancelledOrders * data.shippingCancelled;
+      const totalShipping = shippingDelivered + shippingFailed + shippingCancelled;
+      const totalSpent = productCostTotal + data.amountSpent + totalShipping;
+
+      // Profit
+      const netProfit = revenue - totalSpent;
+      const grossProfit = revenue - productCostTotal - shippingDelivered;
+      const netMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+      const grossMargin = data.sellingPrice > 0 ? ((data.sellingPrice - data.productCost - data.shippingDelivered) / data.sellingPrice) * 100 : 0;
+
+      // ROAS and ROI
+      const roas = data.amountSpent > 0 ? revenue / data.amountSpent : 0;
+      const roi = totalSpent > 0 ? ((revenue - totalSpent) / totalSpent) * 100 : 0;
+
+      // Maximum Profitable CPA calculation
+      const profitPerSale = data.sellingPrice - data.productCost - data.shippingDelivered;
+      const effectiveConvRate = overallConvRate / 100;
+      const maxCPA = effectiveConvRate > 0 ? profitPerSale * effectiveConvRate : 0;
+
+      // Break-even ROAS
+      const profitPerItem = data.sellingPrice - data.productCost - data.shippingDelivered;
+      const breakEvenROAS = profitPerItem > 0 ? data.sellingPrice / profitPerItem : 0;
+
+      // Performance score
+      const sc1 = Math.min((roas / 3.0) * 25, 25);
+      const sc2 = Math.min((roi / 100) * 25, 25);
+      const sc3 = Math.min((netMargin / 30.0) * 25, 25);
+      const sc4 = (overallConvRate / 100) * 25;
+      const score = sc1 + sc2 + sc3 + sc4;
+
+      // Update hero metrics
+      document.getElementById('heroROAS').textContent = roas.toFixed(2) + 'x';
+      document.getElementById('heroROI').textContent = roi.toFixed(1) + '%';
+      document.getElementById('heroCPP').textContent = '£' + realCPP.toFixed(2);
+      document.getElementById('heroCPO').textContent = '£' + standardCPO.toFixed(2);
+      document.getElementById('heroMaxCPA').textContent = '£' + maxCPA.toFixed(2);
+
+      // Update comparison cards
+      document.getElementById('comp1').textContent = '£' + revenue.toFixed(2);
+      document.getElementById('comp1').style.color = '#10b981';
+
+      document.getElementById('comp2').textContent = '£' + netProfit.toFixed(2);
+      document.getElementById('comp2').style.color = netProfit >= 0 ? '#10b981' : '#ef4444';
+
+      document.getElementById('comp3').textContent = '£' + grossProfit.toFixed(2);
+      document.getElementById('comp3').style.color = '#10b981';
+
+      document.getElementById('comp4').textContent = netMargin.toFixed(1) + '%';
+      document.getElementById('comp4').style.color = netMargin >= 0 ? '#10b981' : '#ef4444';
+
+      document.getElementById('comp5').textContent = impressions.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      document.getElementById('comp5').style.color = '#3b82f6';
+
+      document.getElementById('comp6').textContent = linkClicks.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      document.getElementById('comp6').style.color = '#3b82f6';
+
+      document.getElementById('comp7').textContent = landingViews.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      document.getElementById('comp7').style.color = '#3b82f6';
+
+      document.getElementById('comp8').textContent = data.results.toFixed(0);
+      document.getElementById('comp8').style.color = '#f59e0b';
+
+      document.getElementById('comp9').textContent = confirmedOrders.toFixed(0);
+      document.getElementById('comp9').style.color = '#3b82f6';
+
+      document.getElementById('comp10').textContent = deliveredOrders.toFixed(0);
+      document.getElementById('comp10').style.color = '#10b981';
+
+      document.getElementById('comp11').textContent = failedOrders.toFixed(0);
+      document.getElementById('comp11').style.color = '#f59e0b';
+
+      document.getElementById('comp12').textContent = cancelledOrders.toFixed(0);
+      document.getElementById('comp12').style.color = '#f59e0b';
+
+      document.getElementById('comp13').textContent = '£' + productCostTotal.toFixed(2);
+      document.getElementById('comp13').style.color = '#f1f5f9';
+
+      document.getElementById('comp14').textContent = '£' + data.amountSpent.toFixed(2);
+      document.getElementById('comp14').style.color = '#ef4444';
+
+      document.getElementById('comp15').textContent = '£' + totalShipping.toFixed(2);
+      document.getElementById('comp15').style.color = '#f1f5f9';
+
+      document.getElementById('comp16').textContent = '£' + totalSpent.toFixed(2);
+      document.getElementById('comp16').style.color = '#f1f5f9';
+
+      // Update performance score and rating
+      document.getElementById('score').textContent = score.toFixed(1);
+      const rating = score >= 80 ? '🌟 OUTSTANDING 🎉' : score >= 60 ? '👍 STRONG 😊' : score >= 40 ? '⚠️ MODERATE 😐' : '❌ WEAK 😞';
+      document.getElementById('rating').textContent = rating;
+
+      // Update funnel visualization
+      document.getElementById('fImpressions').textContent = `👁️ Impressions: ${impressions.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} (${impressionsPct.toFixed(1)}%)`;
+      document.getElementById('fClicks').textContent = `🖱️ Clicks: ${linkClicks.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} (${clicksPct.toFixed(1)}%)`;
+      document.getElementById('fLanding').textContent = `📄 Landing Views: ${landingViews.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")} (${landingViewsPct.toFixed(1)}%)`;
+      document.getElementById('fPurchases').textContent = `🛒 Purchases: ${data.results.toFixed(0)} (${purchasesPct.toFixed(1)}%)`;
+      document.getElementById('fConfirmed').textContent = `✅ Confirmed: ${confirmedOrders.toFixed(0)} (${confirmedPct.toFixed(1)}%)`;
+      document.getElementById('fDeliveredSales').textContent = `🚚 Delivered: ${deliveredOrders.toFixed(0)} (${deliveredPct.toFixed(1)}%)`;
+
+      // Generate recommendations
+      const recommendations = [];
+      if (data.ctrLink < 1.0) recommendations.push('⚠️ Low CTR - Improve ad creative and targeting');
+      if (data.videoRate < 10) recommendations.push('🎬 Low video engagement - Strengthen first 3 seconds');
+      if (data.landingRate < 70) recommendations.push('⚡ Landing page issues - Optimize speed');
+      if (data.purchaseLanding < 2.0) recommendations.push('🛒 Weak landing page - Enhance persuasion');
+      if (data.frequency > 2.5) recommendations.push('🔄 High frequency - Expand audience or refresh ads');
+      if (data.confirmationRate < 60) recommendations.push('✅ Low confirmation rate - Improve checkout process');
+      if (data.deliveryRate < 80) recommendations.push('🚚 Low delivery rate - Improve logistics');
+      if (roi < 50) recommendations.push('📉 Low ROI - Review pricing strategy');
+      if (roas < 2.0) recommendations.push('⚠️ ROAS below 2.0 - Reduce spend or improve targeting');
+      if (netMargin < 15) recommendations.push('💡 Low profit margin - Negotiate better costs');
+      if (roas > 3.0 && netMargin > 20) recommendations.push('🚀 Excellent performance - Consider scaling!');
+      if (recommendations.length === 0) recommendations.push('✅ Campaign is healthy - Keep monitoring');
+
+      let recHTML = '';
+      for (let i = 0; i < recommendations.length; i++) {
+        recHTML += '<div class="recommendation-item">' + (i + 1) + '. ' + recommendations[i] + '</div>';
+      }
+      document.getElementById('fRecommendationsList').innerHTML = recHTML;
+
+      // Alert banner
+      let alertHTML = '';
+      if (roi < 0) {
+        alertHTML = '<div class="alert-banner"><div class="alert-icon">🚨</div><div class="alert-content"><div class="alert-title">CRITICAL: Campaign Losing Money</div><div class="alert-message">Your ROI is negative at ' + roi.toFixed(1) + '%. Immediate action required to stop losses.</div></div></div>';
+      } else if (roas < breakEvenROAS) {
+        alertHTML = '<div class="alert-banner warning"><div class="alert-icon">⚠️</div><div class="alert-content"><div class="alert-title">Warning: Below Break-Even</div><div class="alert-message">ROAS (' + roas.toFixed(2) + 'x) is below break-even (' + breakEvenROAS.toFixed(2) + 'x). Campaign needs optimization.</div></div></div>';
+      } else if (roas >= 3 && roi > 50) {
+        alertHTML = '<div class="alert-banner success"><div class="alert-icon">🎯</div><div class="alert-content"><div class="alert-title">Excellent Performance!</div><div class="alert-message">Campaign exceeds targets. ROAS: ' + roas.toFixed(2) + 'x | ROI: ' + roi.toFixed(1) + '%. Consider scaling.</div></div></div>';
+      }
+      document.getElementById('alertContainer').innerHTML = alertHTML;
+
+      document.getElementById('resultsDiv').classList.add('show');
+      setTimeout(function() {
+        document.getElementById('resultsDiv').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    };
+  </script>
+</body>
+</html>
