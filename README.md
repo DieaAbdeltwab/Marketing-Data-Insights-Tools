@@ -306,6 +306,6 @@ We welcome contributions! Here's how:
 
 ---
 
-**© 2024 Marketing Data Insights Tools** | **Made with 💜 and 🐍**
+**© 2025 Marketing Data Insights Tools** | **Made with 💜 and 🐍**
 
 </div>
