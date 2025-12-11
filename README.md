@@ -16,7 +16,7 @@
 ## 👨‍💻 **The Story Behind These Tools**
 
 <div align="center">
-<img src="https://media.giphy.com/media/KAq5w47R9rmTuvWOWa/giphy.gif" width="300"/>
+<img src="https://media.giphy.com/media/L8K62iTDkzGX6/giphy.gif" width="300"/>
 </div>
 
 These tools were born from real-world freelance projects where clients needed powerful analytics but wanted simplicity. Here's how they came to life:
